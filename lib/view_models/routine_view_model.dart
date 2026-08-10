@@ -93,6 +93,6 @@ class RoutineViewModel extends ChangeNotifier {
 
   Future<void> delete(String id) async {
     await _repository.deleteRoutine(id);
-    notifyListeners();
+    await loadRoutines();
   }
 }
