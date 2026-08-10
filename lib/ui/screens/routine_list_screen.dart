@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
@@ -40,10 +41,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
                           '${routine.exercises.length} exercise${routine.exercises.length == 1 ? '' : 's'}',
                         ),
                         trailing: const Icon(Icons.chevron_right),
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/routine?id=${routine.id}',
-                        ),
+                        onTap: () => context.push('/routine?id=${routine.id}'),
                       ),
                     );
                   },
