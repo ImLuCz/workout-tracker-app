@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/exercise_database.dart';
 import 'package:workout_tracker_app/domain/models/exercise.dart';
+import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
 class ExerciseListScreen extends StatefulWidget {
   const ExerciseListScreen({super.key});
@@ -43,8 +45,8 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   }
 
   void _addToRoutine(Exercise exercise) {
+    context.read<RoutineViewModel>().addExercise(exercise);
     Navigator.pop(context);
-    // Show snackbar confirming addition
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${exercise.name} added to routine'),
@@ -122,6 +124,7 @@ class _ExerciseListScreenState extends State<ExerciseListScreen> {
   }
 
   void _onAddExercise(Exercise exercise) {
+    context.read<RoutineViewModel>().addExercise(exercise);
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
