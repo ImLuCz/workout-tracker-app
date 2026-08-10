@@ -42,19 +42,4 @@ class StatsViewModel extends ChangeNotifier {
       sessionStats: stats,
     );
   }
-
-  /// Returns the 1RM estimate for a given exercise from its history.
-  double? getBest1RM(String exerciseId) {
-    double? best = null;
-    for (final stat in _sessionStats) {
-      // This is a simplified approach - in a real app we'd track per-exercise
-    }
-    return best;
-  }
-
-  /// Finds personal records (highest weight used for an exercise).
-  List<String> getPersonalRecords() {
-    // Simplified - in a full app we'd aggregate per-exercise
-    return [];
-  }
 }

@@ -3,8 +3,19 @@ import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/domain/models/stats.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 
-class StatsScreen extends StatelessWidget {
+class StatsScreen extends StatefulWidget {
   const StatsScreen({super.key});
+
+  @override
+  State<StatsScreen> createState() => _StatsScreenState();
+}
+
+class _StatsScreenState extends State<StatsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<StatsViewModel>().loadStats();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +32,8 @@ class StatsScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   children: [
                     _OverallStats(stats: viewModel.overallStats ?? _emptyStats()),
+                    const SizedBox(height: 24),
+                    _WeekActivity(viewModel.sessionStats),
                     const SizedBox(height: 24),
                     _VolumeChart(stats: viewModel.sessionStats),
                     const SizedBox(height: 24),
@@ -148,6 +161,94 @@ class _StatCard extends StatelessWidget {
   }
 }
 
+class _WeekActivity extends StatelessWidget {
+  final List<SessionStat> stats;
+
+  const _WeekActivity(this.stats);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+
+    final hasWorkout = List.generate(7, (index) {
+      final dayDate = startOfWeek.add(Duration(days: index));
+      return stats.any((s) =>
+          s.date.year == dayDate.year &&
+          s.date.month == dayDate.month &&
+          s.date.day == dayDate.day);
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'This Week',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: days.asMap().entries.map((e) {
+              final isToday = e.key == now.weekday - 1;
+              return Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: hasWorkout[e.key]
+                          ? theme.colorScheme.primary
+                          : Colors.transparent,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isToday
+                            ? theme.colorScheme.primary
+                            : theme.dividerColor.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        e.value,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: hasWorkout[e.key]
+                              ? Colors.white
+                              : theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    hasWorkout[e.key] ? 'Done' : '',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: hasWorkout[e.key]
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.onSurface.withOpacity(0.5),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _VolumeChart extends StatelessWidget {
   final List<SessionStat> stats;
 
@@ -181,7 +282,7 @@ class _VolumeChart extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final stat = last7[index];
                   final maxVolume = last7.map((s) => s.volumeKg).reduce((a, b) => a > b ? a : b);
-                  final height = maxVolume > 0 ? (stat.volumeKg / (maxVolume.toDouble())) * 120.0 : 0.0;
+                  final height = maxVolume > 0 ? (stat.volumeKg / maxVolume.toDouble()) * 120.0 : 0.0;
                   return Expanded(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,

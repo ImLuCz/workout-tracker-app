@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
@@ -39,9 +37,9 @@ class WorkoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void startSetRest() {
+  void startSetRest({int customSeconds = 0}) {
     if (_restTimerRunning) return;
-    _restSeconds = int.tryParse(_restTarget) ?? 90;
+    _restSeconds = customSeconds > 0 ? customSeconds : (int.tryParse(_restTarget) ?? 90);
     _restTimerRunning = true;
     notifyListeners();
     _timer?.cancel();
@@ -70,7 +68,8 @@ class WorkoutViewModel extends ChangeNotifier {
     final exercises = routine.exercises.map((re) {
       return SessionExercise(
         routineExercise: re,
-        sets: _defaultSetsForExercise(re.exercise),
+        sets: _defaultSetsForExercise(re),
+        restSeconds: re.restSeconds,
       );
     }).toList();
 
@@ -85,9 +84,8 @@ class WorkoutViewModel extends ChangeNotifier {
     return _session!;
   }
 
-  List<WorkoutSet> _defaultSetsForExercise(Exercise exercise) {
-    // Provide 3 default sets for most exercises
-    return List.generate(3, (i) => WorkoutSet(
+  List<WorkoutSet> _defaultSetsForExercise(RoutineExercise routineExercise) {
+    return List.generate(routineExercise.setsCount, (i) => WorkoutSet(
       id: _uuid.v4(),
       weightKg: 0.0,
       reps: 0,
@@ -117,7 +115,7 @@ class WorkoutViewModel extends ChangeNotifier {
       ),
     );
     notifyListeners();
-    startSetRest();
+    startSetRest(customSeconds: exercise.restSeconds);
   }
 
   void updateSetWeight(int exerciseIndex, int setIndex, double weight) {
@@ -165,6 +163,15 @@ class WorkoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void discardSession() {
+    _timer?.cancel();
+    _restTimerRunning = false;
+    _restSeconds = 0;
+    _session = null;
+    _isFinished = false;
+    notifyListeners();
+  }
+
   Future<void> saveSession() async {
     if (_session == null) return;
     await _repository.saveSession(_session!);
@@ -172,7 +179,6 @@ class WorkoutViewModel extends ChangeNotifier {
 
   double estimate1RM(double weightKg, int reps) {
     if (reps <= 0) return 0;
-    // Epley formula
     return weightKg * (1 + reps / 30.0);
   }
 
@@ -181,6 +187,8 @@ class WorkoutViewModel extends ChangeNotifier {
     final end = _session!.endTime ?? DateTime.now();
     return end.difference(_session!.startTime);
   }
+
+  bool get hasActiveWorkout => _session != null;
 
   @override
   void dispose() {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
@@ -13,7 +14,6 @@ class WorkoutActiveScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<WorkoutViewModel>(context);
-    final theme = Theme.of(context);
 
     if (viewModel.session == null) {
       return _StartScreen(routineId: routineId);
@@ -23,17 +23,17 @@ class WorkoutActiveScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(viewModel.session!.routineName),
         actions: [
-          if (viewModel.restTimerRunning)
-            _RestTimerChip(viewModel: viewModel),
-          if (!viewModel.session!.isFinished)
+          if (viewModel.restTimerRunning) _RestTimerChip(viewModel: viewModel),
+          if (!viewModel.session!.isFinished) ...[
             TextButton(
-              onPressed: () {
-                viewModel.finishSession();
-                viewModel.saveSession();
-                Navigator.pop(context);
-              },
+              onPressed: () => _showFinishDialog(context),
               child: const Text('Finish'),
             ),
+            TextButton(
+              onPressed: () => _showDiscardDialog(context),
+              child: const Text('Discard'),
+            ),
+          ],
         ],
       ),
       body: Column(
@@ -47,10 +47,68 @@ class WorkoutActiveScreen extends StatelessWidget {
                 final exercise = viewModel.session!.exercises[exerciseIndex];
                 return _ExerciseCard(
                   exercise: exercise,
-                  onSetComplete: () => viewModel.completeSet(exerciseIndex, 0),
+                  onSetComplete: (setIndex) =>
+                      viewModel.completeSet(exerciseIndex, setIndex),
+                  onChangeWeight: (idx, weight) =>
+                      viewModel.updateSetWeight(exerciseIndex, idx, weight),
+                  onChangeReps: (idx, reps) =>
+                      viewModel.updateSetReps(exerciseIndex, idx, reps),
                 );
               },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFinishDialog(BuildContext context) {
+    final viewModel = context.read<WorkoutViewModel>();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Finish Workout'),
+        content: const Text('Are you sure you want to finish this workout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              viewModel.finishSession();
+              viewModel.saveSession();
+              Navigator.pop(context);
+            },
+            child: const Text('Finish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDiscardDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Discard Workout'),
+        content: const Text('Are you sure you want to discard this workout? All progress will be lost.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keep Workout'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<WorkoutViewModel>().discardSession();
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            style: ButtonStyle(
+              foregroundColor: WidgetStatePropertyAll(Colors.red.shade700),
+            ),
+            child: const Text('Discard'),
           ),
         ],
       ),
@@ -66,6 +124,7 @@ class _StartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final routine = context.read<RoutineRepository>().getRoutine(routineId);
+    final viewModel = context.read<WorkoutViewModel>();
     final theme = Theme.of(context);
 
     if (routine == null) {
@@ -103,7 +162,6 @@ class _StartScreen extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
-                final viewModel = context.read<WorkoutViewModel>();
                 viewModel.createSession(routine);
               },
               child: const Text('Start Workout'),
@@ -192,9 +250,16 @@ class _RestTimerChip extends StatelessWidget {
 
 class _ExerciseCard extends StatelessWidget {
   final SessionExercise exercise;
-  final VoidCallback onSetComplete;
+  final ValueChanged<int> onSetComplete;
+  final ValueChanged2<int, double> onChangeWeight;
+  final ValueChanged2<int, int> onChangeReps;
 
-  const _ExerciseCard({required this.exercise, required this.onSetComplete});
+  const _ExerciseCard({
+    required this.exercise,
+    required this.onSetComplete,
+    required this.onChangeWeight,
+    required this.onChangeReps,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +281,13 @@ class _ExerciseCard extends StatelessWidget {
             ...exercise.sets.asMap().entries.map((entry) {
               final index = entry.key;
               final set = entry.value;
-              return _SetRow(set: set, index: index, onComplete: onSetComplete);
+              return _SetRow(
+                set: set,
+                index: index,
+                onComplete: () => onSetComplete(index),
+                onChangeWeight: (idx, weight) => onChangeWeight(idx, weight),
+                onChangeReps: (idx, reps) => onChangeReps(idx, reps),
+              );
             }),
           ],
         ),
@@ -225,57 +296,184 @@ class _ExerciseCard extends StatelessWidget {
   }
 }
 
+typedef ValueChanged2<A, B> = void Function(A a, B b);
+
 class _SetRow extends StatelessWidget {
   final WorkoutSet set;
   final int index;
   final VoidCallback onComplete;
+  final ValueChanged2<int, double> onChangeWeight;
+  final ValueChanged2<int, int> onChangeReps;
 
-  const _SetRow({required this.set, required this.index, required this.onComplete});
+  const _SetRow({
+    required this.set,
+    required this.index,
+    required this.onComplete,
+    required this.onChangeWeight,
+    required this.onChangeReps,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return InkWell(
-      onTap: set.completed ? null : onComplete,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: set.completed
-              ? theme.colorScheme.primaryContainer
-              : theme.colorScheme.surfaceVariant,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Text(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 56,
+            child: Text(
               'Set ${index + 1}',
               style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(width: 12),
-            if (set.completed)
-              Icon(
-                Icons.check_circle,
-                size: 16,
-                color: theme.colorScheme.primary,
-              )
-            else
-              Icon(
+          ),
+          const SizedBox(width: 8),
+          if (set.completed)
+            Icon(
+              Icons.check_circle,
+              size: 16,
+              color: theme.colorScheme.primary,
+            )
+          else
+            IconButton(
+              icon: Icon(
                 Icons.circle_outlined,
                 size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            const Spacer(),
+              onPressed: onComplete,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 72,
+            child: _SetInput(
+              label: 'kg',
+              value: set.weightKg,
+              onChanged: (v) => onChangeWeight(index, v),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 64,
+            child: _SetInput(
+              label: 'reps',
+              value: set.reps.toDouble(),
+              onChanged: (v) => onChangeReps(index, v.toInt()),
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (set.completed && set.weightKg > 0 && set.reps > 0)
             Text(
-              '${set.weightKg}kg × ${set.reps}',
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w500,
+              '${(set.weightKg * set.reps).toStringAsFixed(0)}kg total',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
               ),
             ),
-          ],
-        ),
+        ],
       ),
+    );
+  }
+}
+
+class _SetInput extends StatefulWidget {
+  final String label;
+  final double value;
+  final ValueChanged<double> onChanged;
+
+  const _SetInput({
+    required this.label,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  State<_SetInput> createState() => _SetInputState();
+}
+
+class _SetInputState extends State<_SetInput> {
+  late final TextEditingController _controller;
+  bool _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.value.toInt().toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _SetInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _controller.text = widget.value.toInt().toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: _controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      textAlign: TextAlign.center,
+      style: theme.textTheme.labelMedium?.copyWith(
+        fontWeight: FontWeight.w500,
+      ),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+      ],
+      onEditingComplete: () {
+        final parsed = double.tryParse(_controller.text);
+        widget.onChanged(parsed ?? 0);
+        FocusScope.of(context).unfocus();
+      },
+      onChanged: (value) {},
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: _editing
+                ? theme.colorScheme.primary
+                : theme.colorScheme.surfaceVariant,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: theme.colorScheme.surfaceVariant,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        suffixText: widget.label,
+        suffixStyle: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        isDense: true,
+        filled: true,
+        fillColor: theme.colorScheme.surfaceVariant,
+      ),
+      onTapOutside: (event) {
+        final parsed = double.tryParse(_controller.text);
+        widget.onChanged(parsed ?? 0);
+        setState(() => _editing = false);
+      },
     );
   }
 }

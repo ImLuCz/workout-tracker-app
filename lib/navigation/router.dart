@@ -30,7 +30,10 @@ final GoRouter router = GoRouter(
           routes: [
             GoRoute(
               path: 'new',
-              builder: (context, state) => const RoutineBuilderScreen(),
+              builder: (context, state) {
+                final editId = state.uri.queryParameters['editId'];
+                return RoutineBuilderScreen(routineId: editId);
+              },
             ),
           ],
         ),

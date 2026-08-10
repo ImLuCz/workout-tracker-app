@@ -77,6 +77,7 @@ class RoutineRepository {
       id: data['exerciseId'] as String,
       exercise: _exerciseFromJson(data['exercise'] as Map<String, dynamic>),
       order: data['order'] as int? ?? 0,
+      restSeconds: data['restSeconds'] as int? ?? 90,
     );
   }
 
@@ -90,6 +91,7 @@ class RoutineRepository {
         'description': e.exercise.description,
       },
       'order': e.order,
+      'restSeconds': e.restSeconds,
     };
   }
 

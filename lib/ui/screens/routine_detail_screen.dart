@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
-import 'package:workout_tracker_app/navigation/router.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
 import 'exercise_list_screen.dart';
@@ -44,6 +43,8 @@ class RoutineDetailScreen extends StatelessWidget {
               if (value == 'delete') {
                 context.read<RoutineViewModel>().delete(routineId);
                 Navigator.pop(context);
+              } else if (value == 'edit') {
+                Navigator.pushNamed(context, '/routine/new?editId=$routineId');
               }
             },
           ),

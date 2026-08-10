@@ -28,16 +28,26 @@ class RoutineViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  String? _editingId;
+  String? get editingId => _editingId;
+
   Future<List<WorkoutRoutine>> loadRoutines() async {
     _isLoading = true;
-    notifyListeners();
+    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     try {
       _routines = await _repository.getAllRoutines();
       return _routines;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     }
+  }
+
+  void startEdit(WorkoutRoutine routine) {
+    _editingId = routine.id;
+    _name = routine.name;
+    _exercises = List<RoutineExercise>.from(routine.exercises);
+    notifyListeners();
   }
 
   void setName(String name) {
@@ -45,11 +55,13 @@ class RoutineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addExercise(Exercise exercise) {
+  void addExercise(Exercise exercise, {int restSeconds = 90, int setsCount = 3}) {
     _exercises.add(RoutineExercise(
       id: _uuid.v4(),
       exercise: exercise,
       order: _exercises.length,
+      restSeconds: restSeconds,
+      setsCount: setsCount,
     ));
     notifyListeners();
   }
@@ -68,6 +80,26 @@ class RoutineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateExerciseRestSeconds(String exerciseId, int restSeconds) {
+    _exercises = _exercises.map((e) {
+      if (e.id == exerciseId) {
+        return e.copyWith(restSeconds: restSeconds);
+      }
+      return e;
+    }).toList();
+    notifyListeners();
+  }
+
+  void updateExerciseSetsCount(String exerciseId, int setsCount) {
+    _exercises = _exercises.map((e) {
+      if (e.id == exerciseId) {
+        return e.copyWith(setsCount: setsCount);
+      }
+      return e;
+    }).toList();
+    notifyListeners();
+  }
+
   void _reorder() {
     _exercises = _exercises
         .map((e) => e.copyWith(order: _exercises.indexOf(e)))
@@ -77,15 +109,18 @@ class RoutineViewModel extends ChangeNotifier {
   Future<String?> save() async {
     if (_name.trim().isEmpty) return null;
     final routine = WorkoutRoutine(
-      id: _uuid.v4(),
+      id: _editingId ?? _uuid.v4(),
       name: _name.trim(),
       exercises: _exercises,
-      createdAt: DateTime.now(),
+      createdAt: _editingId != null
+          ? (_repository.getRoutine(_editingId!)?.createdAt ?? DateTime.now())
+          : DateTime.now(),
       updatedAt: DateTime.now(),
     );
     await _repository.saveRoutine(routine);
     _exercises = [];
     _name = '';
+    _editingId = null;
     await loadRoutines();
     notifyListeners();
     return routine.id;

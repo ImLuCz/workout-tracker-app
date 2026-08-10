@@ -85,8 +85,10 @@ class SessionRepository {
         id: data['exerciseId'] as String,
         exercise: _exerciseFromJson(data['exercise'] as Map<String, dynamic>),
         order: data['order'] as int? ?? 0,
+        restSeconds: data['restSeconds'] as int? ?? 90,
       ),
       sets: sets,
+      restSeconds: data['restSeconds'] as int? ?? 90,
     );
   }
 
@@ -109,6 +111,7 @@ class SessionRepository {
         'description': e.routineExercise.exercise.description,
       },
       'order': e.routineExercise.order,
+      'restSeconds': e.restSeconds,
       'sets': e.sets.map(_workoutSetToJson).toList(),
     };
   }
@@ -134,5 +137,4 @@ class SessionRepository {
       'completedAt': s.completedAt?.toIso8601String(),
     };
   }
-
 }
