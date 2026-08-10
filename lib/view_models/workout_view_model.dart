@@ -160,6 +160,8 @@ class WorkoutViewModel extends ChangeNotifier {
     _restTimerRunning = false;
     _session = _session!.copyWith(endTime: DateTime.now());
     _isFinished = true;
+    _session = null;
+    _isFinished = false;
     notifyListeners();
   }
 
