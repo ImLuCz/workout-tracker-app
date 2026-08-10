@@ -111,7 +111,7 @@ class _QuickActions extends StatelessWidget {
               icon: Icons.add_circle,
               label: 'Create Routine',
               color: const Color(0xFF667EEA),
-              onTap: () => context.push('/routine'),
+              onTap: () => context.push('/routine/new'),
             ),
           ],
         ),

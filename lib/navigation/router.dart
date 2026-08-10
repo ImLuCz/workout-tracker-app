@@ -3,6 +3,7 @@ import 'package:workout_tracker_app/ui/screens/exercise_list_screen.dart';
 import 'package:workout_tracker_app/ui/screens/home_screen.dart';
 import 'package:workout_tracker_app/ui/screens/routine_builder_screen.dart';
 import 'package:workout_tracker_app/ui/screens/routine_detail_screen.dart';
+import 'package:workout_tracker_app/ui/screens/routine_list_screen.dart';
 import 'package:workout_tracker_app/ui/screens/stats_screen.dart';
 import 'package:workout_tracker_app/ui/screens/workout_active_screen.dart';
 import 'package:workout_tracker_app/ui/screens/workout_history_screen.dart';
@@ -23,9 +24,15 @@ final GoRouter router = GoRouter(
           builder: (context, state) {
             final id = state.uri.queryParameters['id'];
             return id == null
-                ? const RoutineBuilderScreen()
+                ? const RoutineListScreen()
                 : RoutineDetailScreen(routineId: id);
           },
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) => const RoutineBuilderScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: 'workout',

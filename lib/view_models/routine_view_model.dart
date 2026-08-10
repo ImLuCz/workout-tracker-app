@@ -19,6 +19,9 @@ class RoutineViewModel extends ChangeNotifier {
   List<RoutineExercise> _exercises = [];
   List<RoutineExercise> get exercises => _exercises;
 
+  List<WorkoutRoutine> _routines = [];
+  List<WorkoutRoutine> get routines => _routines;
+
   String _name = '';
   String get name => _name;
 
@@ -29,7 +32,8 @@ class RoutineViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      return await _repository.getAllRoutines();
+      _routines = await _repository.getAllRoutines();
+      return _routines;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,8 +74,8 @@ class RoutineViewModel extends ChangeNotifier {
         .toList();
   }
 
-  Future<void> save() async {
-    if (_name.trim().isEmpty) return;
+  Future<String?> save() async {
+    if (_name.trim().isEmpty) return null;
     final routine = WorkoutRoutine(
       id: _uuid.v4(),
       name: _name.trim(),
@@ -82,7 +86,9 @@ class RoutineViewModel extends ChangeNotifier {
     await _repository.saveRoutine(routine);
     _exercises = [];
     _name = '';
+    await loadRoutines();
     notifyListeners();
+    return routine.id;
   }
 
   Future<void> delete(String id) async {

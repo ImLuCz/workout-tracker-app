@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
-import 'package:workout_tracker_app/navigation/router.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
 import 'exercise_list_screen.dart';
 
-class RoutineBuilderScreen extends StatelessWidget {
+class RoutineBuilderScreen extends StatefulWidget {
   const RoutineBuilderScreen({super.key});
+
+  @override
+  State<RoutineBuilderScreen> createState() => _RoutineBuilderScreenState();
+}
+
+class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
+  Future<void> _handleSave(BuildContext context, RoutineViewModel viewModel) async {
+    final id = await viewModel.save();
+    if (id != null && context.mounted) {
+      Navigator.of(context).pushReplacementNamed('/routine?id=$id');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +29,9 @@ class RoutineBuilderScreen extends StatelessWidget {
         title: const Text('Create Routine'),
         actions: [
           TextButton(
-            onPressed: viewModel.exercises.isEmpty ? null : viewModel.save,
+            onPressed: viewModel.exercises.isEmpty
+                ? null
+                : () => _handleSave(context, viewModel),
             child: const Text('Save'),
           ),
         ],
