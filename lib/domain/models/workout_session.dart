@@ -50,21 +50,32 @@ class SessionExercise {
   final RoutineExercise routineExercise;
   final List<WorkoutSet> sets;
   final int restSeconds;
+  final List<String> primaryMuscles;
+  final List<String> secondaryMuscles;
 
   const SessionExercise({
     required this.routineExercise,
     required this.sets,
     this.restSeconds = 90,
+    this.primaryMuscles = const [],
+    this.secondaryMuscles = const [],
   });
 
   double get totalWeight =>
       sets.where((s) => s.completed).fold(0.0, (sum, s) => sum + (s.weightKg * s.reps));
 
-  SessionExercise copyWith({List<WorkoutSet>? sets, int? restSeconds}) {
+  SessionExercise copyWith({
+    List<WorkoutSet>? sets,
+    int? restSeconds,
+    List<String>? primaryMuscles,
+    List<String>? secondaryMuscles,
+  }) {
     return SessionExercise(
       routineExercise: routineExercise,
       sets: sets ?? this.sets,
       restSeconds: restSeconds ?? this.restSeconds,
+      primaryMuscles: primaryMuscles ?? this.primaryMuscles,
+      secondaryMuscles: secondaryMuscles ?? this.secondaryMuscles,
     );
   }
 }

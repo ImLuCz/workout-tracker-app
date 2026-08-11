@@ -161,8 +161,8 @@ class _StartScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {
-                viewModel.createSession(routine);
+              onPressed: () async {
+                await viewModel.createSession(routine);
               },
               child: const Text('Start Workout'),
             ),

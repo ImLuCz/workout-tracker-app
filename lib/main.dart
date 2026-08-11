@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:workout_tracker_app/data/repositories/custom_exercise_repository.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 import 'package:workout_tracker_app/data/repositories/session_repository.dart';
 import 'package:workout_tracker_app/data/services/hive_service.dart';
@@ -30,6 +30,9 @@ class WorkoutApp extends StatelessWidget {
         Provider<SessionRepository>(
           create: (_) => SessionRepository(),
         ),
+        Provider<CustomExerciseRepository>(
+          create: (_) => CustomExerciseRepository(),
+        ),
         ChangeNotifierProvider(
           create: (context) => RoutineViewModel(
             repository: context.read<RoutineRepository>(),
@@ -38,6 +41,7 @@ class WorkoutApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (context) => WorkoutViewModel(
             repository: context.read<SessionRepository>(),
+            customExerciseRepository: context.read<CustomExerciseRepository>(),
           ),
         ),
         ChangeNotifierProvider(

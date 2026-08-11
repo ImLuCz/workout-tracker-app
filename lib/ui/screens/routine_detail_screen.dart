@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
-import 'exercise_list_screen.dart';
 import 'workout_active_screen.dart';
 
 class RoutineDetailScreen extends StatelessWidget {
@@ -80,14 +79,6 @@ class RoutineDetailScreen extends StatelessWidget {
             ),
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ExerciseListScreen()),
-        ),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Exercise'),
       ),
     );
   }

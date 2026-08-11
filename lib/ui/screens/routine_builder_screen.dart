@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:workout_tracker_app/data/repositories/custom_exercise_repository.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
+import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 
-import 'exercise_list_screen.dart';
+
 
 class RoutineBuilderScreen extends StatefulWidget {
   final String? routineId;
@@ -37,6 +39,93 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     if (id != null && context.mounted) {
       context.pushReplacement('/routine?id=$id');
     }
+  }
+
+  void _showAddExerciseSheet(BuildContext context) {
+    _showCustomExercisesPicker(context);
+  }
+
+  void _showCustomExercisesPicker(BuildContext context) async {
+    final exercises = await context
+        .read<CustomExerciseRepository>()
+        .getAllCustomExercises();
+    if (!context.mounted) return;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: exercises.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'No custom exercises yet.\nCreate some first!',
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'My Exercises (${exercises.length})',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: exercises.length,
+                        itemBuilder: (ctx, index) {
+                          final exercise = exercises[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                              child: Text(
+                                exercise.name[0].toUpperCase(),
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            title: Text(exercise.name),
+                            subtitle: Text(exercise.primaryMuscles.join(', ')),
+                            trailing: const Icon(Icons.add_circle_outline),
+                            onTap: () {
+                              Navigator.pop(ctx);
+                              context.read<RoutineViewModel>().addExercise(
+                                Exercise(
+                                  id: exercise.id,
+                                  name: exercise.name,
+                                  category: 'Custom',
+                                  description: exercise.description,
+                                ),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('${exercise.name} added to routine'),
+                                  duration: const Duration(seconds: 2),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -85,10 +174,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ExerciseListScreen()),
-        ),
+        onPressed: () => _showAddExerciseSheet(context),
         icon: const Icon(Icons.add),
         label: const Text('Add Exercise'),
       ),
@@ -118,7 +204,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tap + to add exercises from the database',
+            'Tap + to add exercises from your custom exercises',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withOpacity(0.5),
             ),

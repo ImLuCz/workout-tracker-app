@@ -7,13 +7,19 @@ import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
 import 'package:workout_tracker_app/domain/models/workout_routine.dart';
 
+import '../../data/repositories/custom_exercise_repository.dart';
 import '../../data/repositories/session_repository.dart';
 
 /// Manages active workout sessions with set logging and rest timers.
 class WorkoutViewModel extends ChangeNotifier {
-  WorkoutViewModel({required SessionRepository repository}) : _repository = repository;
+  WorkoutViewModel({
+    required SessionRepository repository,
+    CustomExerciseRepository? customExerciseRepository,
+  }) : _repository = repository,
+       _customExerciseRepository = customExerciseRepository;
 
   final SessionRepository _repository;
+  final CustomExerciseRepository? _customExerciseRepository;
   final _uuid = const Uuid();
 
   WorkoutSession? _session;
@@ -64,21 +70,36 @@ class WorkoutViewModel extends ChangeNotifier {
   }
 
   /// Creates a new session from a routine.
-  WorkoutSession createSession(WorkoutRoutine routine) {
-    final exercises = routine.exercises.map((re) {
+  Future<WorkoutSession> createSession(WorkoutRoutine routine) async {
+    final exerciseFutures = routine.exercises.map((re) async {
+      List<String> primaryMuscles = [];
+      List<String> secondaryMuscles = [];
+
+      if (re.exercise.category == 'Custom' && _customExerciseRepository != null) {
+        final customEx = _customExerciseRepository!.getExercise(re.exercise.id);
+        if (customEx != null) {
+          primaryMuscles = customEx.primaryMuscles;
+          secondaryMuscles = customEx.secondaryMuscles;
+        }
+      }
+
       return SessionExercise(
         routineExercise: re,
         sets: _defaultSetsForExercise(re),
         restSeconds: re.restSeconds,
+        primaryMuscles: primaryMuscles,
+        secondaryMuscles: secondaryMuscles,
       );
-    }).toList();
+    });
+
+    final sessionExercises = await Future.wait(exerciseFutures);
 
     _session = WorkoutSession(
       id: _uuid.v4(),
       routineId: routine.id,
       routineName: routine.name,
       startTime: DateTime.now(),
-      exercises: exercises,
+      exercises: sessionExercises,
     );
     notifyListeners();
     return _session!;

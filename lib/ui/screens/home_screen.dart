@@ -44,6 +44,7 @@ class _Header extends StatelessWidget {
           viewModel.hasActiveWorkout,
         ),
         _navItem(context, Icons.book, 'Routines', '/routine', false),
+        _navItem(context, Icons.directions_run, 'Exercises', '/exercise', false),
         _navItem(context, Icons.bar_chart, 'Stats', '/stats', false),
       ],
     );
@@ -128,6 +129,7 @@ class _QuickActions extends StatelessWidget {
               onTap: () => context.push('/routine/new'),
               enabled: true,
             ),
+
           ],
         ),
       ],

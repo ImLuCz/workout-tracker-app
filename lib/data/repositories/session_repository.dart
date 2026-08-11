@@ -89,6 +89,8 @@ class SessionRepository {
       ),
       sets: sets,
       restSeconds: data['restSeconds'] as int? ?? 90,
+      primaryMuscles: (data['primaryMuscles'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      secondaryMuscles: (data['secondaryMuscles'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
     );
   }
 
@@ -109,6 +111,8 @@ class SessionRepository {
         'name': e.routineExercise.exercise.name,
         'category': e.routineExercise.exercise.category,
         'description': e.routineExercise.exercise.description,
+        'primaryMuscles': e.primaryMuscles,
+        'secondaryMuscles': e.secondaryMuscles,
       },
       'order': e.routineExercise.order,
       'restSeconds': e.restSeconds,

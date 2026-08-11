@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:workout_tracker_app/ui/screens/exercise_list_screen.dart';
+import 'package:workout_tracker_app/ui/screens/exercise_manager_screen.dart';
 import 'package:workout_tracker_app/ui/screens/home_screen.dart';
 import 'package:workout_tracker_app/ui/screens/routine_builder_screen.dart';
 import 'package:workout_tracker_app/ui/screens/routine_detail_screen.dart';
@@ -17,7 +17,7 @@ final GoRouter router = GoRouter(
       routes: [
         GoRoute(
           path: 'exercise',
-          builder: (context, state) => const ExerciseListScreen(),
+          builder: (context, state) => const ExerciseManagerScreen(),
         ),
         GoRoute(
           path: 'routine',

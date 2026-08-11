@@ -11,6 +11,9 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -20,9 +23,23 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  List<SessionStat> _getFilteredStats(List<SessionStat> allStats) {
+    if (_searchQuery.isEmpty) return allStats;
+    return allStats.where((stat) {
+      return stat.routineName.toLowerCase().contains(_searchQuery.toLowerCase());
+    }).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<StatsViewModel>(context);
     final theme = Theme.of(context);
+    final filteredStats = _getFilteredStats(viewModel.sessionStats);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Statistics')),
@@ -33,13 +50,34 @@ class _StatsScreenState extends State<StatsScreen> {
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
+                    TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search by routine name...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onChanged: (value) => setState(() => _searchQuery = value),
+                    ),
+                    const SizedBox(height: 24),
                     _OverallStats(stats: viewModel.overallStats ?? _emptyStats()),
                     const SizedBox(height: 24),
                     _WeekActivity(viewModel.sessionStats),
                     const SizedBox(height: 24),
                     _VolumeChart(stats: viewModel.sessionStats),
                     const SizedBox(height: 24),
-                    _SessionList(stats: viewModel.sessionStats),
+                    _MuscleStatsSection(
+                      muscleStats: viewModel.muscleStats,
+                      weeklyMuscleStats: viewModel.weeklyMuscleStats,
+                      searchController: _searchController,
+                    ),
+                    const SizedBox(height: 24),
+                    _SessionList(
+                      stats: filteredStats,
+                      hasSearchFilter: _searchQuery.isNotEmpty,
+                    ),
                   ],
                 ),
     );
@@ -315,10 +353,284 @@ class _VolumeChart extends StatelessWidget {
   }
 }
 
+class _MuscleStatsSection extends StatefulWidget {
+  final List<MuscleStats> muscleStats;
+  final List<WeeklyMuscleStats> weeklyMuscleStats;
+  final TextEditingController searchController;
+
+  const _MuscleStatsSection({
+    required this.muscleStats,
+    required this.weeklyMuscleStats,
+    required this.searchController,
+  });
+
+  @override
+  State<_MuscleStatsSection> createState() => _MuscleStatsSectionState();
+}
+
+class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
+  String _muscleSearch = '';
+
+  List<MuscleStats> get _filteredMuscles {
+    if (_muscleSearch.isEmpty) return widget.muscleStats;
+    return widget.muscleStats.where((m) {
+      return m.muscleName.toLowerCase().contains(_muscleSearch.toLowerCase());
+    }).toList();
+  }
+
+  WeeklyMuscleStats _getWeeklyStats(String muscleName) {
+    return widget.weeklyMuscleStats.firstWhere(
+      (s) => s.muscleName == muscleName,
+      orElse: () => const WeeklyMuscleStats(muscleName: ''),
+    );
+  }
+
+  void _showMuscleDetail(BuildContext context, MuscleStats muscle) {
+    final weekly = _getWeeklyStats(muscle.muscleName);
+    final theme = Theme.of(context);
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                muscle.muscleName,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _DetailRow(
+                label: 'All-time Heaviest',
+                value: '${muscle.heaviestWeightKg.toStringAsFixed(1)} kg',
+              ),
+              _DetailRow(
+                label: 'All-time Volume',
+                value: '${(muscle.totalVolumeKg / 1000).toStringAsFixed(1)} t',
+              ),
+              _DetailRow(
+                label: 'Total Workouts',
+                value: '${muscle.totalWorkouts}',
+              ),
+              const SizedBox(height: 12),
+              Divider(color: theme.dividerColor),
+              const SizedBox(height: 8),
+              Text(
+                'This Week',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _DetailRow(
+                label: 'Sets',
+                value: '${weekly.totalSetsThisWeek}',
+              ),
+              _DetailRow(
+                label: 'Volume',
+                value: '${(weekly.totalVolumeKgThisWeek / 1000).toStringAsFixed(1)} t',
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filtered = _filteredMuscles;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Muscle Stats',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search muscles...',
+            prefixIcon: const Icon(Icons.search),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onChanged: (value) => setState(() => _muscleSearch = value),
+        ),
+        const SizedBox(height: 12),
+        if (filtered.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No muscle data yet',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+              ),
+            ),
+          )
+        else
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.3,
+            ),
+            itemCount: filtered.length,
+            itemBuilder: (context, index) {
+              final muscle = filtered[index];
+              final weekly = _getWeeklyStats(muscle.muscleName);
+              return _MuscleCard(
+                muscle: muscle,
+                weeklySets: weekly.totalSetsThisWeek,
+                onTap: () => _showMuscleDetail(context, muscle),
+              );
+            },
+          ),
+      ],
+    );
+  }
+}
+
+class _MuscleCard extends StatelessWidget {
+  final MuscleStats muscle;
+  final int weeklySets;
+  final VoidCallback onTap;
+
+  const _MuscleCard({
+    required this.muscle,
+    required this.weeklySets,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                muscle.muscleName,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              _MuscleStatLine(
+                label: 'Heaviest',
+                value: '${muscle.heaviestWeightKg.toStringAsFixed(1)} kg',
+              ),
+              _MuscleStatLine(
+                label: 'Volume',
+                value: '${(muscle.totalVolumeKg / 1000).toStringAsFixed(1)} t',
+              ),
+              _MuscleStatLine(
+                label: 'Workouts',
+                value: '${muscle.totalWorkouts}',
+              ),
+              if (weeklySets > 0)
+                _MuscleStatLine(
+                  label: 'This Week',
+                  value: '$weeklySets sets',
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MuscleStatLine extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MuscleStatLine({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.6),
+          ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+}
+}
+
 class _SessionList extends StatelessWidget {
   final List<SessionStat> stats;
+  final bool hasSearchFilter;
 
-  const _SessionList({required this.stats});
+  const _SessionList({required this.stats, this.hasSearchFilter = false});
 
   @override
   Widget build(BuildContext context) {
@@ -327,13 +639,26 @@ class _SessionList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Recent Sessions',
+          hasSearchFilter ? 'Filtered Sessions' : 'Recent Sessions',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
-        ...stats.take(10).map((stat) => _SessionRow(stat: stat)),
+        if (stats.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No results found',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
+              ),
+            ),
+          )
+        else
+          ...stats.take(10).map((stat) => _SessionRow(stat: stat)),
       ],
     );
   }
