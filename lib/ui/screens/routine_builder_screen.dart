@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
@@ -20,19 +21,21 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
   @override
   void initState() {
     super.initState();
-    final viewModel = Provider.of<RoutineViewModel>(context, listen: false);
     if (widget.routineId != null) {
-      final routine = context.read<RoutineRepository>().getRoutine(widget.routineId!);
-      if (routine != null) {
-        viewModel.startEdit(routine);
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final viewModel = Provider.of<RoutineViewModel>(context, listen: false);
+        final routine = context.read<RoutineRepository>().getRoutine(widget.routineId!);
+        if (routine != null) {
+          viewModel.startEdit(routine);
+        }
+      });
     }
   }
 
   Future<void> _handleSave(BuildContext context, RoutineViewModel viewModel) async {
     final id = await viewModel.save();
     if (id != null && context.mounted) {
-      Navigator.of(context).pushReplacementNamed('/routine?id=$id');
+      context.pushReplacement('/routine?id=$id');
     }
   }
 

@@ -14,7 +14,9 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<StatsViewModel>().loadStats();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StatsViewModel>().loadStats();
+    });
   }
 
   @override
