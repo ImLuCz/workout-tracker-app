@@ -59,6 +59,13 @@ class WorkoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Temporarily adjusts the current rest timer by [delta] seconds.
+  /// This is not permanent — the next rest period resets to the exercise default.
+  void adjustRestSeconds(int delta) {
+    _restSeconds = (_restSeconds + delta).clamp(0, 1800);
+    notifyListeners();
+  }
+
   void _onTick(Timer timer) {
     if (_restSeconds <= 1) {
       cancelRest();

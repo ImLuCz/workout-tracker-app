@@ -190,6 +190,11 @@ class _RestTimerBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          IconButton(
+            icon: const Icon(Icons.remove, color: Colors.white),
+            onPressed: () => viewModel.adjustRestSeconds(-10),
+            tooltip: 'Remove 10s',
+          ),
           Text(
             'Rest: $timeStr',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -197,7 +202,12 @@ class _RestTimerBar extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
           ),
-          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () => viewModel.adjustRestSeconds(10),
+            tooltip: 'Add 10s',
+          ),
+          const SizedBox(width: 8),
           TextButton(
             onPressed: viewModel.cancelRest,
             child: const Text('Skip'),
