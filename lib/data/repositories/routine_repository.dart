@@ -53,9 +53,6 @@ class RoutineRepository {
     }
   }
 
-  // Expose for Provider access
-  static RoutineRepository get instance => RoutineRepository();
-
   WorkoutRoutine _fromJson(Map<String, dynamic> data) {
     final exercises = (data['exercises'] as List<dynamic>?)
             ?.map((e) => _routineExerciseFromJson(e as Map<String, dynamic>))
@@ -89,6 +86,8 @@ class RoutineRepository {
         'name': e.exercise.name,
         'category': e.exercise.category,
         'description': e.exercise.description,
+        'target': e.exercise.target,
+        'secondaryMuscles': e.exercise.secondaryMuscles,
       },
       'order': e.order,
       'restSeconds': e.restSeconds,
@@ -101,6 +100,10 @@ class RoutineRepository {
       name: data['name'] as String,
       category: data['category'] as String,
       description: data['description'] as String?,
+      target: data['target'] as String?,
+      secondaryMuscles: (data['secondaryMuscles'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
   }
 }

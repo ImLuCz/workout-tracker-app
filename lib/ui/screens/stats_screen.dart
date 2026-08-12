@@ -38,7 +38,6 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<StatsViewModel>(context);
-    final theme = Theme.of(context);
     final filteredStats = _getFilteredStats(viewModel.sessionStats);
 
     return Scaffold(
@@ -47,38 +46,54 @@ class _StatsScreenState extends State<StatsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : viewModel.sessionStats.isEmpty
               ? _EmptyStats()
-              : ListView(
+              : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  children: [
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search by routine name...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() => _searchQuery = value),
-                    ),
-                    const SizedBox(height: 24),
-                    _OverallStats(stats: viewModel.overallStats ?? _emptyStats()),
-                    const SizedBox(height: 24),
-                    _WeekActivity(viewModel.sessionStats),
-                    const SizedBox(height: 24),
-                    _VolumeChart(stats: viewModel.sessionStats),
-                    const SizedBox(height: 24),
-                    _MuscleStatsSection(
-                      muscleStats: viewModel.muscleStats,
-                      weeklyMuscleStats: viewModel.weeklyMuscleStats,
-                      searchController: _searchController,
-                    ),
-                    const SizedBox(height: 24),
-                    _SessionList(
-                      stats: filteredStats,
-                      hasSearchFilter: _searchQuery.isNotEmpty,
-                    ),
-                  ],
+                  itemCount: 11,
+                  itemBuilder: (context, index) {
+                    switch (index) {
+                      case 0:
+                        return TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Search by routine name...',
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onChanged: (value) => setState(() => _searchQuery = value),
+                        );
+                      case 1:
+                        return const SizedBox(height: 24);
+                      case 2:
+                        return _OverallStats(stats: viewModel.overallStats ?? _emptyStats());
+                      case 3:
+                        return const SizedBox(height: 24);
+                      case 4:
+                        return _WeekActivity(viewModel.sessionStats);
+                      case 5:
+                        return const SizedBox(height: 24);
+                      case 6:
+                        return _VolumeChart(stats: viewModel.sessionStats);
+                      case 7:
+                        return const SizedBox(height: 24);
+                      case 8:
+                        return _MuscleStatsSection(
+                          muscleStats: viewModel.muscleStats,
+                          weeklyMuscleStats: viewModel.weeklyMuscleStats,
+                          searchController: _searchController,
+                        );
+                      case 9:
+                        return const SizedBox(height: 24);
+                      case 10:
+                        return _SessionList(
+                          stats: filteredStats,
+                          hasSearchFilter: _searchQuery.isNotEmpty,
+                        );
+                      default:
+                        return const SizedBox.shrink();
+                    }
+                  },
                 ),
     );
   }
@@ -103,13 +118,13 @@ class _EmptyStats extends StatelessWidget {
           Icon(
             Icons.bar_chart,
             size: 64,
-            color: theme.colorScheme.onSurface.withOpacity(0.3),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             'No workout data yet',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -125,7 +140,6 @@ class _OverallStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -174,7 +188,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -192,7 +206,7 @@ class _StatCard extends StatelessWidget {
           Text(
             title,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -234,7 +248,7 @@ class _WeekActivity extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+            border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -254,7 +268,7 @@ class _WeekActivity extends StatelessWidget {
                       border: Border.all(
                         color: isToday
                             ? theme.colorScheme.primary
-                            : theme.dividerColor.withOpacity(0.3),
+                            : theme.dividerColor.withValues(alpha: 0.3),
                         width: 2,
                       ),
                     ),
@@ -276,7 +290,7 @@ class _WeekActivity extends StatelessWidget {
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: hasWorkout[e.key]
                           ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withOpacity(0.5),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -323,7 +337,8 @@ class _VolumeChart extends StatelessWidget {
                   final stat = last7[index];
                   final maxVolume = last7.map((s) => s.volumeKg).reduce((a, b) => a > b ? a : b);
                   final height = maxVolume > 0 ? (stat.volumeKg / maxVolume.toDouble()) * 120.0 : 0.0;
-                  return Expanded(
+                  return SizedBox(
+                    width: 50,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
@@ -331,7 +346,7 @@ class _VolumeChart extends StatelessWidget {
                           width: double.infinity,
                           height: height,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.primary.withOpacity(0.8),
+                            color: theme.colorScheme.primary.withValues(alpha: 0.8),
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                           ),
                         ),
@@ -370,6 +385,13 @@ class _MuscleStatsSection extends StatefulWidget {
 
 class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
   String _muscleSearch = '';
+  final _muscleSearchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _muscleSearchController.dispose();
+    super.dispose();
+  }
 
   List<MuscleStats> get _filteredMuscles {
     if (_muscleSearch.isEmpty) return widget.muscleStats;
@@ -442,6 +464,12 @@ class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _muscleSearchController.text = _muscleSearch;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final filtered = _filteredMuscles;
@@ -457,6 +485,7 @@ class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
         ),
         const SizedBox(height: 12),
         TextField(
+          controller: _muscleSearchController,
           decoration: InputDecoration(
             hintText: 'Search muscles...',
             prefixIcon: const Icon(Icons.search),
@@ -474,7 +503,7 @@ class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
               child: Text(
                 'No muscle data yet',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -580,7 +609,7 @@ class _MuscleStatLine extends StatelessWidget {
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
         ),
         Text(
@@ -611,7 +640,7 @@ class _DetailRow extends StatelessWidget {
           Text(
             label,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
           ),
           Text(
@@ -652,7 +681,7 @@ class _SessionList extends StatelessWidget {
               child: Text(
                 'No results found',
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ),

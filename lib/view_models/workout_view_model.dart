@@ -13,10 +13,9 @@ import '../../data/repositories/session_repository.dart';
 /// Manages active workout sessions with set logging and rest timers.
 class WorkoutViewModel extends ChangeNotifier {
   WorkoutViewModel({
-    required SessionRepository repository,
-    CustomExerciseRepository? customExerciseRepository,
-  }) : _repository = repository,
-       _customExerciseRepository = customExerciseRepository;
+    required this._repository,
+    this._customExerciseRepository,
+  });
 
   final SessionRepository _repository;
   final CustomExerciseRepository? _customExerciseRepository;
@@ -83,11 +82,16 @@ class WorkoutViewModel extends ChangeNotifier {
       List<String> secondaryMuscles = [];
 
       if (re.exercise.category == 'Custom' && _customExerciseRepository != null) {
-        final customEx = _customExerciseRepository!.getExercise(re.exercise.id);
+        final customEx = _customExerciseRepository.getExercise(re.exercise.id);
         if (customEx != null) {
           primaryMuscles = customEx.primaryMuscles;
           secondaryMuscles = customEx.secondaryMuscles;
         }
+      } else if (re.exercise.target != null && re.exercise.target!.isNotEmpty) {
+        primaryMuscles = [re.exercise.target!];
+        secondaryMuscles = re.exercise.secondaryMuscles ?? [];
+      } else if (re.exercise.category.isNotEmpty) {
+        primaryMuscles = [re.exercise.category];
       }
 
       return SessionExercise(

@@ -55,6 +55,4 @@ class CustomExerciseRepository {
   /// Alias for getAllExercises, used by routine_builder_screen.
   Future<List<CustomExercise>> getAllCustomExercises() => getAllExercises();
 
-  // Expose for Provider access
-  static CustomExerciseRepository get instance => CustomExerciseRepository();
 }

@@ -3,12 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/custom_exercise_repository.dart';
-import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
+
 import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
-
-
 
 class RoutineBuilderScreen extends StatefulWidget {
   final String? routineId;
@@ -26,7 +24,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     if (widget.routineId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final viewModel = Provider.of<RoutineViewModel>(context, listen: false);
-        final routine = context.read<RoutineRepository>().getRoutine(widget.routineId!);
+        final routine = context.read<RoutineViewModel>().getRoutine(widget.routineId!);
         if (routine != null) {
           viewModel.startEdit(routine);
         }
@@ -193,20 +191,20 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.fitness_center,
             size: 64,
-            color: theme.colorScheme.onSurface.withOpacity(0.3),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             'No exercises yet',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Tap + to add exercises from your custom exercises',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -223,7 +221,7 @@ class _ExerciseList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
-      onReorder: (oldIndex, newIndex) {
+      onReorderItem: (oldIndex, newIndex) {
         if (oldIndex < newIndex) newIndex--;
         viewModel.moveExercise(oldIndex, newIndex);
       },
@@ -306,7 +304,7 @@ class _ExerciseRow extends StatelessWidget {
                   Text(
                     exercise.exercise.category,
                     style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -394,7 +392,7 @@ class _RestSecondsInputState extends State<_RestSecondsInput> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: _editing ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant,
+            color: _editing ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
           ),
         ),
         enabledBorder: OutlineInputBorder(
@@ -411,7 +409,7 @@ class _RestSecondsInputState extends State<_RestSecondsInput> {
         ),
         isDense: true,
         filled: true,
-        fillColor: theme.colorScheme.surfaceVariant,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
       ),
       onTapOutside: (event) {
         final parsed = int.tryParse(_controller.text);
@@ -481,7 +479,7 @@ class _SetsCountInputState extends State<_SetsCountInput> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: _editing ? theme.colorScheme.primary : theme.colorScheme.surfaceVariant,
+            color: _editing ? theme.colorScheme.primary : theme.colorScheme.surfaceContainerHighest,
           ),
         ),
         enabledBorder: OutlineInputBorder(
@@ -498,7 +496,7 @@ class _SetsCountInputState extends State<_SetsCountInput> {
         ),
         isDense: true,
         filled: true,
-        fillColor: theme.colorScheme.surfaceVariant,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
       ),
       onTapOutside: (event) {
         final parsed = int.tryParse(_controller.text);

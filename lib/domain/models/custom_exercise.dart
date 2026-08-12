@@ -48,8 +48,8 @@ class CustomExercise {
       'id': id,
       'name': name,
       'description': description,
-      'primaryMuscles': primaryMuscles.join(', '),
-      'secondaryMuscles': secondaryMuscles.join(', '),
+      'primaryMuscles': primaryMuscles,
+      'secondaryMuscles': secondaryMuscles,
       'equipment': equipment,
       'referencePicturePath': referencePicturePath,
       'createdAt': createdAt.toIso8601String(),
@@ -58,33 +58,19 @@ class CustomExercise {
   }
 
   factory CustomExercise.fromJson(Map<String, dynamic> data) {
-    // Handle both old String format and new List format
-    dynamic pm = data['primaryMuscles'];
-    List<String> parsedPrimary;
-    if (pm is List) {
-      parsedPrimary = pm.map((e) => (e as String).trim()).where((s) => s.isNotEmpty).toList();
-    } else if (pm is String) {
-      parsedPrimary = pm.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    } else {
-      parsedPrimary = [];
-    }
-
-    dynamic sm = data['secondaryMuscles'];
-    List<String> parsedSecondary;
-    if (sm is List) {
-      parsedSecondary = sm.map((e) => (e as String).trim()).where((s) => s.isNotEmpty).toList();
-    } else if (sm is String) {
-      parsedSecondary = sm.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
-    } else {
-      parsedSecondary = [];
+    List<String> parseMuscleList(dynamic value) {
+      if (value is List) {
+        return value.map((e) => (e as String).trim()).where((s) => s.isNotEmpty).toList();
+      }
+      return [];
     }
 
     return CustomExercise(
       id: data['id'] as String,
       name: data['name'] as String,
       description: data['description'] as String?,
-      primaryMuscles: parsedPrimary,
-      secondaryMuscles: parsedSecondary,
+      primaryMuscles: parseMuscleList(data['primaryMuscles']),
+      secondaryMuscles: parseMuscleList(data['secondaryMuscles']),
       equipment: data['equipment'] as String? ?? '',
       referencePicturePath: data['referencePicturePath'] as String?,
       createdAt: DateTime.parse(data['createdAt'] as String),

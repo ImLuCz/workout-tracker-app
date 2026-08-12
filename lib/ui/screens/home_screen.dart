@@ -31,7 +31,6 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final viewModel = context.watch<WorkoutViewModel>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -83,7 +82,7 @@ class _Header extends StatelessWidget {
             style: theme.textTheme.labelSmall?.copyWith(
               color: isActive
                   ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withOpacity(0.6),
+                  : theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -97,7 +96,6 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final viewModel = context.watch<WorkoutViewModel>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,13 +150,13 @@ class _QuickActions extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: enabled
-                ? color.withOpacity(0.1)
-                : theme.colorScheme.surfaceVariant,
+                ? color.withValues(alpha: 0.1)
+                : theme.colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: enabled
-                  ? color.withOpacity(0.3)
-                  : theme.dividerColor.withOpacity(0.2),
+                  ? color.withValues(alpha: 0.3)
+                  : theme.dividerColor.withValues(alpha: 0.2),
             ),
           ),
           child: Column(

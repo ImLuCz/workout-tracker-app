@@ -48,6 +48,7 @@ class _ExerciseManagerScreenState extends State<ExerciseManagerScreen>
   }
 
   Future<void> _deleteExercise(CustomExercise exercise) async {
+    final repo = context.read<CustomExerciseRepository>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -67,7 +68,7 @@ class _ExerciseManagerScreenState extends State<ExerciseManagerScreen>
       ),
     );
     if (confirmed == true && context.mounted) {
-      await context.read<CustomExerciseRepository>().deleteExercise(exercise.id);
+      await repo.deleteExercise(exercise.id);
     }
   }
 
@@ -348,20 +349,20 @@ class _EmptyState extends StatelessWidget {
           Icon(
             Icons.fitness_center,
             size: 64,
-            color: theme.colorScheme.onSurface.withOpacity(0.3),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 16),
           Text(
             'No custom exercises yet',
             style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.6),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Switch to "Create New" tab to add your first exercise',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -383,7 +384,7 @@ class _ExerciseCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
@@ -433,7 +434,7 @@ class _ExerciseCard extends StatelessWidget {
                       child: Text(
                         'Also: ${exercise.secondaryMuscles.join(', ')}',
                         style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
+
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
+import 'package:workout_tracker_app/view_models/routine_view_model.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 
@@ -77,11 +78,14 @@ class WorkoutActiveScreen extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              final statsVm = context.read<StatsViewModel>();
               Navigator.pop(context);
               viewModel.finishSession();
               await viewModel.saveSession();
-              context.read<StatsViewModel>().reloadStats();
-              Navigator.pop(context);
+              await statsVm.reloadStats();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             child: const Text('Finish'),
           ),
@@ -125,7 +129,7 @@ class _StartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final routine = context.read<RoutineRepository>().getRoutine(routineId);
+    final routine = context.read<RoutineViewModel>().getRoutine(routineId);
     final viewModel = context.read<WorkoutViewModel>();
     final theme = Theme.of(context);
 
@@ -145,7 +149,7 @@ class _StartScreen extends StatelessWidget {
             Icon(
               Icons.fitness_center,
               size: 80,
-              color: theme.colorScheme.primary.withOpacity(0.5),
+              color: theme.colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(
@@ -158,7 +162,7 @@ class _StartScreen extends StatelessWidget {
             Text(
               'Press start to begin your session',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 32),
@@ -378,7 +382,7 @@ class _SetRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          if (set.completed && set.weightKg > 0 && set.reps > 0)
+          if (set.weightKg > 0 && set.reps > 0)
             Text(
               '${(set.weightKg * set.reps).toStringAsFixed(0)}kg total',
               style: theme.textTheme.labelSmall?.copyWith(
@@ -458,13 +462,13 @@ class _SetInputState extends State<_SetInput> {
           borderSide: BorderSide(
             color: _editing
                 ? theme.colorScheme.primary
-                : theme.colorScheme.surfaceVariant,
+                : theme.colorScheme.surfaceContainerHighest,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(
-            color: theme.colorScheme.surfaceVariant,
+            color: theme.colorScheme.surfaceContainerHighest,
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -479,7 +483,7 @@ class _SetInputState extends State<_SetInput> {
         ),
         isDense: true,
         filled: true,
-        fillColor: theme.colorScheme.surfaceVariant,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
       ),
       onTapOutside: (event) {
         final parsed = double.tryParse(_controller.text);

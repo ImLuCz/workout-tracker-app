@@ -49,7 +49,7 @@ class WorkoutApp extends StatelessWidget {
             final vm = StatsViewModel(
               repository: context.read<SessionRepository>(),
             );
-            vm.loadStats();
+            WidgetsBinding.instance.addPostFrameCallback((_) => vm.loadStats());
             return vm;
           },
         ),

@@ -55,9 +55,6 @@ class SessionRepository {
     }
   }
 
-  // Expose for Provider access
-  static SessionRepository get instance => SessionRepository();
-
   WorkoutSession _fromJson(Map<String, dynamic> data) {
     final exercises = (data['exercises'] as List<dynamic>?)
             ?.map((e) => _sessionExerciseFromJson(e as Map<String, dynamic>))

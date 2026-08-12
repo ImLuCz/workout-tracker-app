@@ -10,8 +10,7 @@ import '../../data/repositories/routine_repository.dart';
 
 /// Manages routine creation, editing, and exercise selection.
 class RoutineViewModel extends ChangeNotifier {
-  RoutineViewModel({required RoutineRepository repository})
-      : _repository = repository;
+  RoutineViewModel({required this._repository});
 
   final RoutineRepository _repository;
   final _uuid = const Uuid();
@@ -42,6 +41,8 @@ class RoutineViewModel extends ChangeNotifier {
       WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     }
   }
+
+  WorkoutRoutine? getRoutine(String id) => _repository.getRoutine(id);
 
   void startEdit(WorkoutRoutine routine) {
     _editingId = routine.id;
