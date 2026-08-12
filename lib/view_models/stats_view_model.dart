@@ -26,6 +26,10 @@ class StatsViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
+  Future<void> reloadStats() async {
+    await loadStats();
+  }
+
   Future<void> loadStats() async {
     _isLoading = true;
     notifyListeners();

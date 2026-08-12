@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
+import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 
 class WorkoutActiveScreen extends StatelessWidget {
@@ -75,10 +76,11 @@ class WorkoutActiveScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
               viewModel.finishSession();
-              viewModel.saveSession();
+              await viewModel.saveSession();
+              context.read<StatsViewModel>().reloadStats();
               Navigator.pop(context);
             },
             child: const Text('Finish'),

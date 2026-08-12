@@ -186,8 +186,6 @@ class WorkoutViewModel extends ChangeNotifier {
     _restTimerRunning = false;
     _session = _session!.copyWith(endTime: DateTime.now());
     _isFinished = true;
-    _session = null;
-    _isFinished = false;
     notifyListeners();
   }
 
@@ -203,6 +201,9 @@ class WorkoutViewModel extends ChangeNotifier {
   Future<void> saveSession() async {
     if (_session == null) return;
     await _repository.saveSession(_session!);
+    _session = null;
+    _isFinished = false;
+    notifyListeners();
   }
 
   double estimate1RM(double weightKg, int reps) {
