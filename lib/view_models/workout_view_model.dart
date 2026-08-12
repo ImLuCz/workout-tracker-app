@@ -10,6 +10,14 @@ import 'package:workout_tracker_app/domain/models/workout_routine.dart';
 import '../../data/repositories/custom_exercise_repository.dart';
 import '../../data/repositories/session_repository.dart';
 
+/// Stores the last-known weight and reps for a single set index.
+class SetDefaults {
+  final double weightKg;
+  final int reps;
+
+  const SetDefaults({required this.weightKg, required this.reps});
+}
+
 /// Manages active workout sessions with set logging and rest timers.
 class WorkoutViewModel extends ChangeNotifier {
   WorkoutViewModel({
@@ -75,8 +83,12 @@ class WorkoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Creates a new session from a routine.
-  Future<WorkoutSession> createSession(WorkoutRoutine routine) async {
+  /// Creates a new session from a routine, optionally carrying forward weights and reps
+  /// from the most recent completed session for the same routine.
+  Future<WorkoutSession> createSession(
+    WorkoutRoutine routine, {
+    Map<String, Map<int, SetDefaults>>? previousSetDefaults,
+  }) async {
     final exerciseFutures = routine.exercises.map((re) async {
       List<String> primaryMuscles = [];
       List<String> secondaryMuscles = [];
@@ -94,9 +106,11 @@ class WorkoutViewModel extends ChangeNotifier {
         primaryMuscles = [re.exercise.category];
       }
 
+      final setDefaults = previousSetDefaults?[re.exercise.id];
+
       return SessionExercise(
         routineExercise: re,
-        sets: _defaultSetsForExercise(re),
+        sets: _defaultSetsForExercise(re, setDefaults: setDefaults),
         restSeconds: re.restSeconds,
         primaryMuscles: primaryMuscles,
         secondaryMuscles: secondaryMuscles,
@@ -116,13 +130,20 @@ class WorkoutViewModel extends ChangeNotifier {
     return _session!;
   }
 
-  List<WorkoutSet> _defaultSetsForExercise(RoutineExercise routineExercise) {
-    return List.generate(routineExercise.setsCount, (i) => WorkoutSet(
-      id: _uuid.v4(),
-      weightKg: 0.0,
-      reps: 0,
-      completed: false,
-    ));
+  /// Builds the initial sets for an exercise, carrying forward weights/reps from a previous session.
+  List<WorkoutSet> _defaultSetsForExercise(
+    RoutineExercise routineExercise, {
+    Map<int, SetDefaults>? setDefaults,
+  }) {
+    return List.generate(routineExercise.setsCount, (i) {
+      final defaults = setDefaults?[i];
+      return WorkoutSet(
+        id: _uuid.v4(),
+        weightKg: defaults?.weightKg ?? 0.0,
+        reps: defaults?.reps ?? 0,
+        completed: false,
+      );
+    });
   }
 
   /// Logs a set as completed and auto-starts rest timer.

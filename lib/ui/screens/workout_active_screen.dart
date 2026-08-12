@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'package:workout_tracker_app/data/repositories/session_repository.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
@@ -168,7 +169,13 @@ class _StartScreen extends StatelessWidget {
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () async {
-                await viewModel.createSession(routine);
+                final sessionRepo = context.read<SessionRepository>();
+                final previousSession = await sessionRepo.getLastCompletedSessionForRoutine(routine.id);
+                final previousSetDefaults = _extractSetDefaults(previousSession);
+                await viewModel.createSession(
+                  routine,
+                  previousSetDefaults: previousSetDefaults,
+                );
               },
               child: const Text('Start Workout'),
             ),
@@ -313,6 +320,24 @@ class _ExerciseCard extends StatelessWidget {
 }
 
 typedef ValueChanged2<A, B> = void Function(A a, B b);
+
+/// Extracts the last-known weight and reps per set index for each exercise
+/// in a previous completed session, keyed by exercise ID.
+Map<String, Map<int, SetDefaults>> _extractSetDefaults(
+    WorkoutSession? session) {
+  if (session == null) return {};
+  final result = <String, Map<int, SetDefaults>>{};
+  for (final ex in session.exercises) {
+    final exerciseId = ex.routineExercise.exercise.id;
+    final setMap = <int, SetDefaults>{};
+    for (int i = 0; i < ex.sets.length; i++) {
+      final set = ex.sets[i];
+      setMap[i] = SetDefaults(weightKg: set.weightKg, reps: set.reps);
+    }
+    result[exerciseId] = setMap;
+  }
+  return result;
+}
 
 class _SetRow extends StatelessWidget {
   final WorkoutSet set;

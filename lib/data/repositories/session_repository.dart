@@ -55,6 +55,17 @@ class SessionRepository {
     }
   }
 
+  /// Returns the most recent completed (logged) session for the given routine, or null if none exists.
+  Future<WorkoutSession?> getLastCompletedSessionForRoutine(String routineId) async {
+    final allSessions = await getAllSessions();
+    for (final session in allSessions) {
+      if (session.routineId == routineId && session.endTime != null) {
+        return session;
+      }
+    }
+    return null;
+  }
+
   WorkoutSession _fromJson(Map<String, dynamic> data) {
     final exercises = (data['exercises'] as List<dynamic>?)
             ?.map((e) => _sessionExerciseFromJson(e as Map<String, dynamic>))
