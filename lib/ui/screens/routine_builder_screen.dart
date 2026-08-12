@@ -221,6 +221,7 @@ class _ExerciseList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
+      buildDefaultDragHandles: false,
       onReorderItem: (oldIndex, newIndex) {
         if (oldIndex < newIndex) newIndex--;
         viewModel.moveExercise(oldIndex, newIndex);
@@ -238,13 +239,16 @@ class _ExerciseList extends StatelessWidget {
             padding: const EdgeInsets.only(right: 16),
             child: const Icon(Icons.delete, color: Colors.red),
           ),
-          child: _ExerciseRow(
-            exercise: exercise,
-            order: index + 1,
-            onRestChanged: (restSeconds) =>
-                viewModel.updateExerciseRestSeconds(exercise.id, restSeconds),
-            onSetsChanged: (count) =>
-                viewModel.updateExerciseSetsCount(exercise.id, count),
+          child: ReorderableDragStartListener(
+            index: index,
+            child: _ExerciseRow(
+              exercise: exercise,
+              order: index + 1,
+              onRestChanged: (restSeconds) =>
+                  viewModel.updateExerciseRestSeconds(exercise.id, restSeconds),
+              onSetsChanged: (count) =>
+                  viewModel.updateExerciseSetsCount(exercise.id, count),
+            ),
           ),
         );
       },
@@ -274,9 +278,15 @@ class _ExerciseRow extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
+            Icon(
+              Icons.drag_handle,
+              size: 20,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
             Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
@@ -311,16 +321,14 @@ class _ExerciseRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            SizedBox(
-              width: 72,
+            Flexible(
               child: _RestSecondsInput(
                 value: exercise.restSeconds,
                 onChanged: onRestChanged,
               ),
             ),
             const SizedBox(width: 4),
-            SizedBox(
-              width: 72,
+            Flexible(
               child: _SetsCountInput(
                 value: exercise.setsCount,
                 onChanged: onSetsChanged,
