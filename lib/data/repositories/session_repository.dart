@@ -108,12 +108,12 @@ class SessionRepository {
         'name': e.routineExercise.exercise.name,
         'category': e.routineExercise.exercise.category,
         'description': e.routineExercise.exercise.description,
-        'primaryMuscles': e.primaryMuscles,
-        'secondaryMuscles': e.secondaryMuscles,
       },
       'order': e.routineExercise.order,
       'restSeconds': e.restSeconds,
       'sets': e.sets.map(_workoutSetToJson).toList(),
+      'primaryMuscles': e.primaryMuscles,
+      'secondaryMuscles': e.secondaryMuscles,
     };
   }
 

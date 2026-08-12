@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:workout_tracker_app/constants/muscles.dart';
 import 'package:workout_tracker_app/domain/models/stats.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 
@@ -78,10 +79,8 @@ class _StatsScreenState extends State<StatsScreen> {
                       case 7:
                         return const SizedBox(height: 24);
                       case 8:
-                        return _MuscleStatsSection(
-                          muscleStats: viewModel.muscleStats,
+                        return _WeeklyMuscleSetsSection(
                           weeklyMuscleStats: viewModel.weeklyMuscleStats,
-                          searchController: _searchController,
                         );
                       case 9:
                         return const SizedBox(height: 24);
@@ -311,9 +310,9 @@ class _VolumeChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final last7 = stats.take(7).toList().reversed.toList();
+    final last5 = stats.take(5).toList().reversed.toList();
 
-    if (last7.isEmpty) return const SizedBox.shrink();
+    if (last5.isEmpty) return const SizedBox.shrink();
 
     return Card(
       child: Padding(
@@ -322,7 +321,7 @@ class _VolumeChart extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Volume Trend (Last 7 Sessions)',
+              'Sessions (Last 5) — Sets per Workout',
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -332,10 +331,10 @@ class _VolumeChart extends StatelessWidget {
               height: 150,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: last7.length,
+                itemCount: last5.length,
                 itemBuilder: (context, index) {
-                  final stat = last7[index];
-                  final maxVolume = last7.map((s) => s.volumeKg).reduce((a, b) => a > b ? a : b);
+                  final stat = last5[index];
+                  final maxVolume = last5.map((s) => s.volumeKg).reduce((a, b) => a > b ? a : b);
                   final height = maxVolume > 0 ? (stat.volumeKg / maxVolume.toDouble()) * 120.0 : 0.0;
                   return SizedBox(
                     width: 50,
@@ -368,291 +367,108 @@ class _VolumeChart extends StatelessWidget {
   }
 }
 
-class _MuscleStatsSection extends StatefulWidget {
-  final List<MuscleStats> muscleStats;
+class _WeeklyMuscleSetsSection extends StatefulWidget {
   final List<WeeklyMuscleStats> weeklyMuscleStats;
-  final TextEditingController searchController;
 
-  const _MuscleStatsSection({
-    required this.muscleStats,
-    required this.weeklyMuscleStats,
-    required this.searchController,
-  });
+  const _WeeklyMuscleSetsSection({required this.weeklyMuscleStats});
 
   @override
-  State<_MuscleStatsSection> createState() => _MuscleStatsSectionState();
+  State<_WeeklyMuscleSetsSection> createState() => _WeeklyMuscleSetsSectionState();
 }
 
-class _MuscleStatsSectionState extends State<_MuscleStatsSection> {
-  String _muscleSearch = '';
-  final _muscleSearchController = TextEditingController();
+class _WeeklyMuscleSetsSectionState extends State<_WeeklyMuscleSetsSection> {
+  String _selectedMuscle = 'All';
 
-  @override
-  void dispose() {
-    _muscleSearchController.dispose();
-    super.dispose();
-  }
+  List<String> get _muscleOptions => ['All', ...allMuscles];
 
-  List<MuscleStats> get _filteredMuscles {
-    if (_muscleSearch.isEmpty) return widget.muscleStats;
-    return widget.muscleStats.where((m) {
-      return m.muscleName.toLowerCase().contains(_muscleSearch.toLowerCase());
-    }).toList();
-  }
-
-  WeeklyMuscleStats _getWeeklyStats(String muscleName) {
-    return widget.weeklyMuscleStats.firstWhere(
-      (s) => s.muscleName == muscleName,
-      orElse: () => const WeeklyMuscleStats(muscleName: ''),
-    );
-  }
-
-  void _showMuscleDetail(BuildContext context, MuscleStats muscle) {
-    final weekly = _getWeeklyStats(muscle.muscleName);
-    final theme = Theme.of(context);
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                muscle.muscleName,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _DetailRow(
-                label: 'All-time Heaviest',
-                value: '${muscle.heaviestWeightKg.toStringAsFixed(1)} kg',
-              ),
-              _DetailRow(
-                label: 'All-time Volume',
-                value: '${(muscle.totalVolumeKg / 1000).toStringAsFixed(1)} t',
-              ),
-              _DetailRow(
-                label: 'Total Workouts',
-                value: '${muscle.totalWorkouts}',
-              ),
-              const SizedBox(height: 12),
-              Divider(color: theme.dividerColor),
-              const SizedBox(height: 8),
-              Text(
-                'This Week',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              _DetailRow(
-                label: 'Sets',
-                value: '${weekly.totalSetsThisWeek}',
-              ),
-              _DetailRow(
-                label: 'Volume',
-                value: '${(weekly.totalVolumeKgThisWeek / 1000).toStringAsFixed(1)} t',
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _muscleSearchController.text = _muscleSearch;
+  List<WeeklyMuscleStats> get _filteredStats {
+    if (_selectedMuscle == 'All') return widget.weeklyMuscleStats;
+    return widget.weeklyMuscleStats
+        .where((s) => s.muscleName == _selectedMuscle)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final filtered = _filteredMuscles;
+    final hasData = widget.weeklyMuscleStats.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Muscle Stats',
+          'Weekly Muscle Sets',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
-        TextField(
-          controller: _muscleSearchController,
+        DropdownButtonFormField<String>(
+          initialValue: _selectedMuscle,
           decoration: InputDecoration(
-            hintText: 'Search muscles...',
-            prefixIcon: const Icon(Icons.search),
+            hintText: 'Filter by muscle group...',
+            prefixIcon: const Icon(Icons.filter_list),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          onChanged: (value) => setState(() => _muscleSearch = value),
+          items: _muscleOptions
+              .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+              .toList(),
+          onChanged: (value) {
+            if (value != null) setState(() => _selectedMuscle = value);
+          },
         ),
         const SizedBox(height: 12),
-        if (filtered.isEmpty)
+        if (!hasData)
           Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                'No muscle data yet',
+                'No weekly muscle data yet',
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ),
             ),
           )
+        else if (_selectedMuscle == 'All')
+          ...widget.weeklyMuscleStats
+              .where((s) => s.totalSetsThisWeek > 0)
+              .map((stat) => _WeeklyMuscleRow(stat: stat))
         else
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.3,
-            ),
-            itemCount: filtered.length,
-            itemBuilder: (context, index) {
-              final muscle = filtered[index];
-              final weekly = _getWeeklyStats(muscle.muscleName);
-              return _MuscleCard(
-                muscle: muscle,
-                weeklySets: weekly.totalSetsThisWeek,
-                onTap: () => _showMuscleDetail(context, muscle),
-              );
-            },
-          ),
+          ..._filteredStats
+              .map((stat) => _WeeklyMuscleRow(stat: stat)),
       ],
     );
   }
 }
 
-class _MuscleCard extends StatelessWidget {
-  final MuscleStats muscle;
-  final int weeklySets;
-  final VoidCallback onTap;
+class _WeeklyMuscleRow extends StatelessWidget {
+  final WeeklyMuscleStats stat;
 
-  const _MuscleCard({
-    required this.muscle,
-    required this.weeklySets,
-    required this.onTap,
-  });
+  const _WeeklyMuscleRow({required this.stat});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                muscle.muscleName,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              _MuscleStatLine(
-                label: 'Heaviest',
-                value: '${muscle.heaviestWeightKg.toStringAsFixed(1)} kg',
-              ),
-              _MuscleStatLine(
-                label: 'Volume',
-                value: '${(muscle.totalVolumeKg / 1000).toStringAsFixed(1)} t',
-              ),
-              _MuscleStatLine(
-                label: 'Workouts',
-                value: '${muscle.totalWorkouts}',
-              ),
-              if (weeklySets > 0)
-                _MuscleStatLine(
-                  label: 'This Week',
-                  value: '$weeklySets sets',
-                ),
-            ],
-          ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        title: Text(stat.muscleName),
+        subtitle: Text(
+          '${(stat.totalVolumeKgThisWeek / 1000).toStringAsFixed(1)} t',
         ),
-      ),
-    );
-  }
-}
-
-class _MuscleStatLine extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _MuscleStatLine({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-        Text(
-          value,
-          style: theme.textTheme.labelSmall?.copyWith(
+        trailing: Text(
+          '${stat.totalSetsThisWeek.toStringAsFixed(stat.totalSetsThisWeek == stat.totalSetsThisWeek.toInt() ? 0 : 1)} sets',
+          style: theme.textTheme.labelMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            color: theme.colorScheme.primary,
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DetailRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
-}
+  }
 }
 
 class _SessionList extends StatelessWidget {

@@ -98,11 +98,11 @@ void main() {
       expect(viewModel.sessionStats.length, 1);
       expect(viewModel.overallStats, isNotNull);
       expect(viewModel.overallStats!.totalSessions, 1);
-      expect(viewModel.muscleStats.length, 1);
-      expect(viewModel.muscleStats.first.muscleName, 'Chest');
+      expect(viewModel.weeklyMuscleStats.length, 1);
+      expect(viewModel.weeklyMuscleStats.first.muscleName, 'Chest');
     });
 
-    test('_computeMuscleStats correctly aggregates muscle data', () async {
+    test('_computeWeeklyMuscleStats handles multiple sessions in the same week', () async {
       final now = DateTime.now();
       repository.addSession(makeSession(
         id: 'session-1',
@@ -136,22 +136,19 @@ void main() {
 
       await viewModel.loadStats();
 
-      final chestStat = viewModel.muscleStats
-          .where((m) => m.muscleName == 'Chest')
+      final weeklyChest = viewModel.weeklyMuscleStats
+          .where((s) => s.muscleName == 'Chest')
           .firstOrNull;
-      final tricepsStat = viewModel.muscleStats
-          .where((m) => m.muscleName == 'Triceps')
+      final weeklyTriceps = viewModel.weeklyMuscleStats
+          .where((s) => s.muscleName == 'Triceps')
           .firstOrNull;
 
-      expect(chestStat, isNotNull);
-      expect(chestStat!.totalWorkouts, 2);
-      expect(chestStat.completedSets, 3);
-      expect(chestStat.totalVolumeKg, (80.0 * 8 * 2) + (85.0 * 6));
-      expect(chestStat.heaviestWeightKg, 85.0);
+      expect(weeklyChest, isNotNull);
+      expect(weeklyChest!.totalSetsThisWeek, 3.0);
+      expect(weeklyChest.totalVolumeKgThisWeek, (80.0 * 8 * 2) + (85.0 * 6));
 
-      expect(tricepsStat, isNotNull);
-      expect(tricepsStat!.totalWorkouts, 2);
-      expect(tricepsStat.completedSets, 3);
+      expect(weeklyTriceps, isNotNull);
+      expect(weeklyTriceps!.totalSetsThisWeek, 1.5);
     });
 
     test('_computeWeeklyMuscleStats correctly filters by week', () async {

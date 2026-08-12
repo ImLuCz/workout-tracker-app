@@ -7,7 +7,6 @@ class WorkoutStats {
   final int totalSets;
   final int totalCompletedSets;
   final List<SessionStat> sessionStats;
-  final List<MuscleStats> muscleStats;
 
   const WorkoutStats({
     required this.totalVolumeKg,
@@ -15,7 +14,6 @@ class WorkoutStats {
     required this.totalSets,
     required this.totalCompletedSets,
     required this.sessionStats,
-    this.muscleStats = const [],
   });
 
   double get avgVolumePerSession =>
@@ -25,34 +23,15 @@ class WorkoutStats {
       totalSets == 0 ? 0 : totalCompletedSets / totalSets;
 }
 
-/// Per-muscle statistics aggregated across all sessions.
-class MuscleStats {
-  final String muscleName;
-  final int totalWorkouts;
-  final int totalSets;
-  final int completedSets;
-  final double totalVolumeKg;
-  final double heaviestWeightKg;
-
-  const MuscleStats({
-    required this.muscleName,
-    this.totalWorkouts = 0,
-    this.totalSets = 0,
-    this.completedSets = 0,
-    this.totalVolumeKg = 0.0,
-    this.heaviestWeightKg = 0.0,
-  });
-}
-
 /// Per-muscle statistics for the current week.
 class WeeklyMuscleStats {
   final String muscleName;
-  final int totalSetsThisWeek;
+  final double totalSetsThisWeek;
   final double totalVolumeKgThisWeek;
 
   const WeeklyMuscleStats({
     required this.muscleName,
-    this.totalSetsThisWeek = 0,
+    this.totalSetsThisWeek = 0.0,
     this.totalVolumeKgThisWeek = 0.0,
   });
 }
