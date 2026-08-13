@@ -12,9 +12,6 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
-  final _searchController = TextEditingController();
-  String _searchQuery = '';
-
   @override
   void initState() {
     super.initState();
@@ -24,22 +21,8 @@ class _StatsScreenState extends State<StatsScreen> {
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  List<SessionStat> _getFilteredStats(List<SessionStat> allStats) {
-    if (_searchQuery.isEmpty) return allStats;
-    return allStats.where((stat) {
-      return stat.routineName.toLowerCase().contains(_searchQuery.toLowerCase());
-    }).toList();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<StatsViewModel>(context);
-    final filteredStats = _getFilteredStats(viewModel.sessionStats);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Statistics')),
@@ -49,46 +32,29 @@ class _StatsScreenState extends State<StatsScreen> {
               ? _EmptyStats()
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: 11,
+                  itemCount: 9,
                   itemBuilder: (context, index) {
                     switch (index) {
                       case 0:
-                        return TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Search by routine name...',
-                            prefixIcon: const Icon(Icons.search),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onChanged: (value) => setState(() => _searchQuery = value),
-                        );
+                        return _OverallStats(stats: viewModel.overallStats ?? _emptyStats());
                       case 1:
                         return const SizedBox(height: 24);
                       case 2:
-                        return _OverallStats(stats: viewModel.overallStats ?? _emptyStats());
+                        return _WeekActivity(viewModel.sessionStats);
                       case 3:
                         return const SizedBox(height: 24);
                       case 4:
-                        return _WeekActivity(viewModel.sessionStats);
+                        return _VolumeChart(stats: viewModel.sessionStats);
                       case 5:
                         return const SizedBox(height: 24);
                       case 6:
-                        return _VolumeChart(stats: viewModel.sessionStats);
-                      case 7:
-                        return const SizedBox(height: 24);
-                      case 8:
                         return _WeeklyMuscleSetsSection(
                           weeklyMuscleStats: viewModel.weeklyMuscleStats,
                         );
-                      case 9:
+                      case 7:
                         return const SizedBox(height: 24);
-                      case 10:
-                        return _SessionList(
-                          stats: filteredStats,
-                          hasSearchFilter: _searchQuery.isNotEmpty,
-                        );
+                      case 8:
+                        return _SessionList(stats: viewModel.sessionStats);
                       default:
                         return const SizedBox.shrink();
                     }
@@ -473,9 +439,8 @@ class _WeeklyMuscleRow extends StatelessWidget {
 
 class _SessionList extends StatelessWidget {
   final List<SessionStat> stats;
-  final bool hasSearchFilter;
 
-  const _SessionList({required this.stats, this.hasSearchFilter = false});
+  const _SessionList({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -484,7 +449,7 @@ class _SessionList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          hasSearchFilter ? 'Filtered Sessions' : 'Recent Sessions',
+          'Recent Sessions',
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w600,
           ),
