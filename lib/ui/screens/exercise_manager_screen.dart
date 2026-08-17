@@ -228,7 +228,12 @@ class _CreateExerciseTabState extends State<_CreateExerciseTab> {
     setState(() => _saving = false);
   }
 
-  Widget _muscleChipSection(String label, Set<String> selected, ValueChanged<Set<String>> onChanged) {
+  Widget _muscleChipSection(
+    String label,
+    Set<String> selected,
+    ValueChanged<Set<String>> onChanged,
+  ) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -236,34 +241,165 @@ class _CreateExerciseTabState extends State<_CreateExerciseTab> {
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: allMuscles.map((muscle) {
-            final isSelected = selected.contains(muscle);
-            return FilterChip(
-              label: Text(muscle),
-              selected: isSelected,
-              onSelected: (isSelected) {
-                final result = Set<String>.from(selected);
-                if (isSelected) {
-                  result.add(muscle);
-                } else {
-                  result.remove(muscle);
-                }
-                onChanged(result);
-              },
-              selectedColor: Theme.of(context).colorScheme.primaryContainer,
-              checkmarkColor: Theme.of(context).colorScheme.onPrimaryContainer,
-            );
-          }).toList(),
+        InkWell(
+          onTap: () => _showMuscleSelector(
+            context,
+            label,
+            selected,
+            onChanged,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.inputDecorationTheme.border!.borderSide.color),
+              borderRadius: BorderRadius.circular(12),
+              color: theme.inputDecorationTheme.fillColor,
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.tune, size: 20, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                const SizedBox(width: 12),
+                if (selected.isEmpty) ...[
+                  Text(
+                    'Select muscles...',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ] else ...[
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: selected.map((muscle) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: FilterChip(
+                              label: Text(muscle),
+                              selected: false,
+                              onSelected: null,
+                              selectedColor: theme.colorScheme.primaryContainer,
+                              checkmarkColor: theme.colorScheme.onPrimaryContainer,
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ],
+    );
+  }
+
+  void _showMuscleSelector(
+    BuildContext context,
+    String title,
+    Set<String> selected,
+    ValueChanged<Set<String>> onChanged,
+  ) {
+    final controller = TextEditingController(text: '');
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: 'Search muscles...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (value) => setModalState(() {}),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 300,
+                  child: ListView(
+                    children: allMuscles
+                        .where((muscle) => muscle
+                            .toLowerCase()
+                            .contains(controller.text.toLowerCase()))
+                        .map((muscle) {
+                      final isSelected = selected.contains(muscle);
+                      return ListTile(
+                        title: Text(muscle),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle,
+                                color: theme.colorScheme.primary,
+                              )
+                            : null,
+                        selected: isSelected,
+                        selectedTileColor: theme.colorScheme.primaryContainer,
+                        onTap: () {
+                          final result = Set<String>.from(selected);
+                          if (isSelected) {
+                            result.remove(muscle);
+                          } else {
+                            result.add(muscle);
+                          }
+                          onChanged(result);
+                          setModalState(() {});
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
