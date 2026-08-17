@@ -1,6 +1,5 @@
 const List<String> allMuscles = [
   'Chest',
-  'Back',
   'Shoulders',
   'Biceps',
   'Triceps',
@@ -13,6 +12,8 @@ const List<String> allMuscles = [
   'Abs',
   'Obliques',
   'Lower Back',
+  'Spinal Erectors',
+  'Rhomboids',
   'Lats',
   'Traps',
   'Rear Delts',
