@@ -3,8 +3,53 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateIndex();
+  }
+
+  void _updateIndex() {
+    final location = GoRouterState.of(context).uri.path;
+    int index = 0;
+    if (location.startsWith('/workout')) {
+      index = 1;
+    } else if (location.startsWith('/routine')) {
+      index = 2;
+    } else if (location.startsWith('/exercise')) {
+      index = 3;
+    } else if (location.startsWith('/stats')) {
+      index = 4;
+    }
+    if (index != _currentIndex) {
+      setState(() => _currentIndex = index);
+    }
+  }
+
+  void _onTabTapped(int index) {
+    final routes = <String>[
+      '/',
+      '/workout?routineId=active',
+      '/routine',
+      '/exercise',
+      '/stats',
+    ];
+    final target = routes[index];
+    final current = GoRouterState.of(context).uri.path;
+    if (target != current) {
+      context.push(target);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +67,38 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabTapped,
+        type: BottomNavigationBarType.fixed,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center_outlined),
+            activeIcon: Icon(Icons.fitness_center),
+            label: 'Workout',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book_outlined),
+            activeIcon: Icon(Icons.book),
+            label: 'Routines',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_run_outlined),
+            activeIcon: Icon(Icons.directions_run),
+            label: 'Exercises',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            activeIcon: Icon(Icons.bar_chart),
+            label: 'Stats',
+          ),
+        ],
+      ),
     );
   }
 }
@@ -31,61 +108,11 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<WorkoutViewModel>();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _navItem(
-          context,
-          Icons.fitness_center,
-          'Workout',
-          viewModel.hasActiveWorkout ? '/workout?routineId=active' : null,
-          viewModel.hasActiveWorkout,
-        ),
-        _navItem(context, Icons.book, 'Routines', '/routine', false),
-        _navItem(context, Icons.directions_run, 'Exercises', '/exercise', false),
-        _navItem(context, Icons.bar_chart, 'Stats', '/stats', false),
-      ],
-    );
-  }
-
-  Widget _navItem(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String? route,
-    bool isActive,
-  ) {
-    final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: route != null ? () => context.push(route) : null,
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? theme.colorScheme.primary
-                  : theme.cardTheme.color ?? theme.hoverColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              icon,
-              color: isActive ? Colors.white : theme.colorScheme.onSurface,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: isActive
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
+    return const Text(
+      'Workout Tracker',
+      style: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
