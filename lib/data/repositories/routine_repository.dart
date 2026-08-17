@@ -26,6 +26,12 @@ class RoutineRepository {
     await box.delete(id);
   }
 
+  /// Deletes all routines from storage.
+  Future<void> clearAll() async {
+    final box = HiveService.routinesBox;
+    await box.clear();
+  }
+
   Future<List<WorkoutRoutine>> getAllRoutines() async {
     final box = HiveService.routinesBox;
     final routines = <WorkoutRoutine>[];

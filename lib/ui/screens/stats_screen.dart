@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:workout_tracker_app/constants/muscles.dart';
+import 'package:workout_tracker_app/data/repositories/custom_exercise_repository.dart';
+import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
+import 'package:workout_tracker_app/data/repositories/session_repository.dart';
 import 'package:workout_tracker_app/domain/models/stats.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 
@@ -32,7 +35,7 @@ class _StatsScreenState extends State<StatsScreen> {
               ? _EmptyStats()
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: 9,
+                  itemCount: 11,
                   itemBuilder: (context, index) {
                     switch (index) {
                       case 0:
@@ -54,7 +57,11 @@ class _StatsScreenState extends State<StatsScreen> {
                       case 7:
                         return const SizedBox(height: 24);
                       case 8:
+                        return const SizedBox(height: 24);
+                      case 9:
                         return _SessionList(stats: viewModel.sessionStats);
+                      case 10:
+                        return const _DangerZone();
                       default:
                         return const SizedBox.shrink();
                     }
@@ -470,6 +477,133 @@ class _SessionList extends StatelessWidget {
         else
           ...stats.take(10).map((stat) => _SessionRow(stat: stat)),
       ],
+    );
+  }
+}
+
+class _DangerZone extends StatelessWidget {
+  const _DangerZone();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _DangerZoneCard();
+  }
+}
+
+class _DangerZoneCard extends StatefulWidget {
+  const _DangerZoneCard();
+
+  @override
+  State<_DangerZoneCard> createState() => _DangerZoneCardState();
+}
+
+class _DangerZoneCardState extends State<_DangerZoneCard> {
+  bool _isDeleting = false;
+
+  Future<void> _confirmAndClear() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete All Data'),
+        content: const Text(
+          'This will permanently delete all your workout routines, workout sessions, and custom exercises. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete Everything'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isDeleting = true);
+      final routineRepo = context.read<RoutineRepository>();
+      final sessionRepo = context.read<SessionRepository>();
+      final customExerciseRepo = context.read<CustomExerciseRepository>();
+      final statsVm = context.read<StatsViewModel>();
+      try {
+        await routineRepo.clearAll();
+        await sessionRepo.clearAll();
+        await customExerciseRepo.clearAll();
+        if (mounted) {
+          statsVm.loadStats();
+        }
+      } catch (_) {}
+      if (mounted) {
+        setState(() => _isDeleting = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final errorColor = theme.colorScheme.error;
+
+    return Card(
+      color: errorColor.withValues(alpha: 0.05),
+      margin: const EdgeInsets.only(bottom: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: errorColor, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  'Danger Zone',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: errorColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Deleting all data will permanently remove all workout routines, workout sessions, and custom exercises. This cannot be undone.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: _isDeleting ? null : _confirmAndClear,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: errorColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: _isDeleting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Delete All Data',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

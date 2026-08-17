@@ -17,6 +17,12 @@ class CustomExerciseRepository {
     await box.delete(id);
   }
 
+  /// Deletes all custom exercises from storage.
+  Future<void> clearAll() async {
+    final box = HiveService.customExercisesBox;
+    await box.clear();
+  }
+
   Future<List<CustomExercise>> getAllExercises() async {
     final box = HiveService.customExercisesBox;
     final exercises = <CustomExercise>[];

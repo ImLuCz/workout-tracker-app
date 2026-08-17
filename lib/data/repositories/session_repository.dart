@@ -28,6 +28,12 @@ class SessionRepository {
     await box.delete(id);
   }
 
+  /// Deletes all sessions from storage.
+  Future<void> clearAll() async {
+    final box = HiveService.sessionsBox;
+    await box.clear();
+  }
+
   Future<List<WorkoutSession>> getAllSessions() async {
     final box = HiveService.sessionsBox;
     final sessions = <WorkoutSession>[];
