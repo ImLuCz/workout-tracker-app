@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'package:workout_tracker_app/data/repositories/session_repository.dart';
@@ -85,7 +86,7 @@ class WorkoutActiveScreen extends StatelessWidget {
               await viewModel.saveSession();
               await statsVm.reloadStats();
               if (context.mounted) {
-                Navigator.pop(context);
+                context.go('/');
               }
             },
             child: const Text('Finish'),
@@ -109,8 +110,10 @@ class WorkoutActiveScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               context.read<WorkoutViewModel>().discardSession();
-              Navigator.pop(context);
-              Navigator.pop(context);
+              Navigator.of(context).pop();
+              if (context.mounted) {
+                context.go('/');
+              }
             },
             style: ButtonStyle(
               foregroundColor: WidgetStatePropertyAll(Colors.red.shade700),
