@@ -14,11 +14,13 @@ Navigation is handled by **GoRouter**.
 lib/
   main.dart                  # App entry point, Provider setup, Hive init
   navigation/
-    router.dart              # GoRouter configuration
+    router.dart              # GoRouter configuration (ShellRoute with bottom nav)
   ui/
     core/
-      theme.dart             # Light/dark ThemeData
-    screens/                 # Top-level screens (Stateless or Stateful)
+      theme.dart             # Light/dark ThemeData (Material 3)
+    screens/
+      widgets/               # Reusable widget components for screens
+      *_screen.dart          # Top-level screens (Stateless or Stateful)
   view_models/               # ChangeNotifier providers (MVVM view models)
   domain/
     models/                  # Plain data classes (immutability, copyWith)
@@ -53,6 +55,8 @@ ViewModels are wired in `main.dart` inside `MultiProvider`:
 
 ```dart
 ChangeNotifierProvider(create: (context) => RoutineViewModel(repository: context.read<RoutineRepository>())),
+ChangeNotifierProvider(create: (context) => WorkoutViewModel(repository: context.read<SessionRepository>(), customExerciseRepository: context.read<CustomExerciseRepository>())),
+ChangeNotifierProvider(create: (context) => StatsViewModel(repository: context.read<SessionRepository>())),
 ```
 
 Screens read view models with `context.watch<ViewModel>()` or `context.read<ViewModel>()`.
@@ -90,16 +94,16 @@ All models are **immutable** with `const` constructors and `copyWith` methods.
 
 | Model | Key fields |
 |---|---|
-| `Exercise` | `id`, `name`, `category`, `description`, `equipment`, `target`, `secondaryMuscles`, `instructions` |
+| `Exercise` | `id`, `name`, `category`, `description?`, `equipment?`, `target?`, `secondaryMuscles?`, `instructions?` |
 | `RoutineExercise` | `id`, `exercise`, `order`, `restSeconds`, `setsCount` |
-| `WorkoutRoutine` | `id`, `name`, `exercises`, `createdAt`, `updatedAt` |
-| `WorkoutSet` | `id`, `weightKg`, `reps`, `completed`, `completedAt` |
-| `SessionExercise` | `routineExercise`, `sets`, `restSeconds`, `primaryMuscles`, `secondaryMuscles` |
-| `WorkoutSession` | `id`, `routineId`, `routineName`, `startTime`, `endTime`, `exercises` |
-| `CustomExercise` | `id`, `name`, `primaryMuscles`, `secondaryMuscles`, `equipment`, `createdAt`, `updatedAt` |
-| `WorkoutStats` | `totalVolumeKg`, `totalSessions`, `totalSets`, `totalCompletedSets`, `sessionStats` |
+| `WorkoutRoutine` | `id`, `name`, `exercises`, `createdAt`, `updatedAt?` |
+| `WorkoutSet` | `id`, `weightKg`, `reps`, `completed`, `completedAt?`, `isLogged` (getter) |
+| `SessionExercise` | `routineExercise`, `sets`, `restSeconds`, `primaryMuscles`, `secondaryMuscles`, `totalWeight` (getter) |
+| `WorkoutSession` | `id`, `routineId`, `routineName`, `startTime`, `endTime?`, `exercises`, `isFinished`/`totalVolume`/`totalSets`/`completedSets` (getters) |
+| `CustomExercise` | `id`, `name`, `description?`, `primaryMuscles`, `secondaryMuscles`, `equipment`, `referencePicturePath?`, `createdAt`, `updatedAt` |
+| `CustomExerciseStats` | `totalWorkouts`, `totalVolumeKg`, `personalBestKg` |
+| `WorkoutStats` | `totalVolumeKg`, `totalSessions`, `totalSets`, `totalCompletedSets`, `sessionStats`, `avgVolumePerSession`/`completionRate` (getters) |
 | `SessionStat` | `date`, `routineName`, `volumeKg`, `completedSets`, `totalSets`, `duration` |
-| `MuscleStats` | `muscleName`, `totalWorkouts`, `totalSets`, `completedSets`, `totalVolumeKg`, `heaviestWeightKg` |
 | `WeeklyMuscleStats` | `muscleName`, `totalSetsThisWeek`, `totalVolumeKgThisWeek` |
 
 ### Model conventions
@@ -108,12 +112,13 @@ All models are **immutable** with `const` constructors and `copyWith` methods.
 - All fields are `final`.
 - Provide `copyWith` for any class whose instances are mutated indirectly.
 - `fromJson`/`toJson` only where data crosses the persistence boundary (repositories and `CustomExercise`).
+- Nullable fields use `?` and default to sensible values in `fromJson`.
 
 ---
 
 ## Routing
 
-Defined in `lib/navigation/router.dart` using `GoRouter`:
+Defined in `lib/navigation/router.dart` using `GoRouter` with a `ShellRoute` that wraps a `BottomNavigationBar` (or a resume workout bar when an active session exists).
 
 ```
 /                       → HomeScreen
@@ -128,13 +133,13 @@ Defined in `lib/navigation/router.dart` using `GoRouter`:
 ```
 
 - Query parameters are used for passing IDs (e.g. `?routineId=xxx`).
-- Short-lived screens (active workout) use `Navigator.push` with `MaterialPageRoute` instead of GoRouter where appropriate.
+- The active workout screen is navigated via GoRouter (`/workout?...`) rather than `Navigator.push`.
 
 ---
 
 ## Theming
 
-Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightTheme` / `darkTheme`).
+Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightTheme` / `darkTheme`) using Material 3 (`useMaterial3: true`).
 
 - Seed color: `#4A5568` (slate grey) for light, `#667EEA` (periwinkle) for dark accent buttons.
 - Scaffold background: `#F8F9FA` (light) / `#1A1A2E` (dark).
