@@ -28,7 +28,7 @@ class _StatsScreenState extends State<StatsScreen> {
     final viewModel = Provider.of<StatsViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Statistics')),
+      appBar: AppBar(title: const Text('Statistics'), automaticallyImplyLeading: false),
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator())
           : viewModel.sessionStats.isEmpty

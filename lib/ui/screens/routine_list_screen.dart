@@ -22,7 +22,7 @@ class _RoutineListScreenState extends State<RoutineListScreen> {
     final viewModel = Provider.of<RoutineViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Routines')),
+      appBar: AppBar(title: const Text('Routines'), automaticallyImplyLeading: false),
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator())
           : viewModel.routines.isEmpty

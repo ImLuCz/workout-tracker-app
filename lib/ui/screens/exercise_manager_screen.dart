@@ -77,6 +77,7 @@ class _ExerciseManagerScreenState extends State<ExerciseManagerScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Exercise Manager'),
+        automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
