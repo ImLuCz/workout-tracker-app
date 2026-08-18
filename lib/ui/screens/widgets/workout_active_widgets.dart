@@ -4,12 +4,14 @@ import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
 import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 
+/// Typedef for callbacks that carry two arguments.
 typedef ValueChanged2<A, B> = void Function(A a, B b);
 
+/// Horizontal rest-timer bar with +/- 10s buttons and a skip action.
 class RestTimerBar extends StatelessWidget {
   final WorkoutViewModel viewModel;
 
-  const _RestTimerBar({required this.viewModel});
+  const RestTimerBar({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +53,11 @@ class RestTimerBar extends StatelessWidget {
   }
 }
 
+/// Pill-shaped rest-timer chip shown in the app bar.
 class RestTimerChip extends StatelessWidget {
   final WorkoutViewModel viewModel;
 
-  const _RestTimerChip({required this.viewModel});
+  const RestTimerChip({required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -91,13 +94,14 @@ class RestTimerChip extends StatelessWidget {
   }
 }
 
+/// Card displaying an exercise and its set rows.
 class ExerciseCard extends StatelessWidget {
   final SessionExercise exercise;
   final ValueChanged<int> onSetComplete;
   final ValueChanged2<int, double> onChangeWeight;
   final ValueChanged2<int, int> onChangeReps;
 
-  const _ExerciseCard({
+  const ExerciseCard({
     required this.exercise,
     required this.onSetComplete,
     required this.onChangeWeight,
@@ -124,7 +128,7 @@ class ExerciseCard extends StatelessWidget {
             ...exercise.sets.asMap().entries.map((entry) {
               final index = entry.key;
               final set = entry.value;
-              return _SetRow(
+              return SetRow(
                 set: set,
                 index: index,
                 onComplete: () => onSetComplete(index),
@@ -139,6 +143,7 @@ class ExerciseCard extends StatelessWidget {
   }
 }
 
+/// Single row for one set, showing completion toggle, weight, and reps inputs.
 class SetRow extends StatelessWidget {
   final WorkoutSet set;
   final int index;
@@ -146,7 +151,7 @@ class SetRow extends StatelessWidget {
   final ValueChanged2<int, double> onChangeWeight;
   final ValueChanged2<int, int> onChangeReps;
 
-  const _SetRow({
+  const SetRow({
     required this.set,
     required this.index,
     required this.onComplete,
@@ -191,7 +196,7 @@ class SetRow extends StatelessWidget {
           const SizedBox(width: 12),
           SizedBox(
             width: 72,
-            child: _SetInput(
+            child: SetInput(
               label: 'kg',
               value: set.weightKg,
               onChanged: (v) => onChangeWeight(index, v),
@@ -200,7 +205,7 @@ class SetRow extends StatelessWidget {
           const SizedBox(width: 8),
           SizedBox(
             width: 64,
-            child: _SetInput(
+            child: SetInput(
               label: 'reps',
               value: set.reps.toDouble(),
               onChanged: (v) => onChangeReps(index, v.toInt()),
@@ -222,22 +227,23 @@ class SetRow extends StatelessWidget {
   }
 }
 
+/// Numeric text input for weight or reps with inline label.
 class SetInput extends StatefulWidget {
   final String label;
   final double value;
   final ValueChanged<double> onChanged;
 
-  const _SetInput({
+  const SetInput({
     required this.label,
     required this.value,
     required this.onChanged,
   });
 
   @override
-  State<_SetInput> createState() => _SetInputState();
+  State<SetInput> createState() => _SetInputState();
 }
 
-class SetInputState extends State<SetInput> {
+class _SetInputState extends State<SetInput> {
   late final TextEditingController _controller;
   bool _editing = false;
 
@@ -250,7 +256,7 @@ class SetInputState extends State<SetInput> {
   }
 
   @override
-  void didUpdateWidget(covariant _SetInput oldWidget) {
+  void didUpdateWidget(covariant SetInput oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       _controller.text = widget.value.toInt().toString();

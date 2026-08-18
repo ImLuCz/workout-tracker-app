@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:workout_tracker_app/constants/rest.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
@@ -52,7 +53,7 @@ class WorkoutViewModel extends ChangeNotifier {
 
   void startSetRest({int customSeconds = 0}) {
     if (_restTimerRunning) return;
-    _restSeconds = customSeconds > 0 ? customSeconds : (int.tryParse(_restTarget) ?? 90);
+    _restSeconds = customSeconds > 0 ? customSeconds : (int.tryParse(_restTarget) ?? defaultRestSeconds);
     _restTimerRunning = true;
     notifyListeners();
     _timer?.cancel();
@@ -69,7 +70,7 @@ class WorkoutViewModel extends ChangeNotifier {
   /// Temporarily adjusts the current rest timer by [delta] seconds.
   /// This is not permanent — the next rest period resets to the exercise default.
   void adjustRestSeconds(int delta) {
-    _restSeconds = (_restSeconds + delta).clamp(0, 1800);
+    _restSeconds = (_restSeconds + delta).clamp(0, maxRestSeconds);
     notifyListeners();
   }
 
@@ -231,6 +232,9 @@ class WorkoutViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Estimates one-rep max using the Epley formula:
+  ///   1RM = weight × (1 + reps / 30)
+  /// Valid for reps in the range 1–10; accuracy decreases beyond that.
   double estimate1RM(double weightKg, int reps) {
     if (reps <= 0) return 0;
     return weightKg * (1 + reps / 30.0);

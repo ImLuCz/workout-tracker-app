@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:workout_tracker_app/data/services/hive_service.dart';
 import 'package:workout_tracker_app/domain/models/custom_exercise.dart';
 import 'package:uuid/uuid.dart';
@@ -32,7 +33,9 @@ class CustomExerciseRepository {
         try {
           final data = jsonDecode(raw) as Map<String, dynamic>;
           exercises.add(CustomExercise.fromJson(data));
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('Error parsing custom exercise: $e');
+        }
       }
     }
     exercises.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
@@ -45,7 +48,8 @@ class CustomExerciseRepository {
     if (raw == null) return null;
     try {
       return CustomExercise.fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error parsing custom exercise $id: $e');
       return null;
     }
   }

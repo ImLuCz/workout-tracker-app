@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:workout_tracker_app/data/services/hive_service.dart';
 import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
@@ -43,7 +44,9 @@ class SessionRepository {
         try {
           final data = jsonDecode(raw) as Map<String, dynamic>;
           sessions.add(_fromJson(data));
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('Error parsing session: $e');
+        }
       }
     }
     sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
@@ -56,7 +59,8 @@ class SessionRepository {
     if (raw == null) return null;
     try {
       return _fromJson(jsonDecode(raw) as Map<String, dynamic>);
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Error parsing session $id: $e');
       return null;
     }
   }

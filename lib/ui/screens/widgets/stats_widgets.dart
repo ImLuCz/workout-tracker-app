@@ -6,10 +6,11 @@ import 'package:workout_tracker_app/data/repositories/session_repository.dart';
 import 'package:workout_tracker_app/domain/models/stats.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
 
+/// Bar chart showing completed sets across the last five workout sessions.
 class VolumeChart extends StatelessWidget {
   final List<SessionStat> stats;
 
-  const _VolumeChart({required this.stats});
+  const VolumeChart({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +72,11 @@ class VolumeChart extends StatelessWidget {
   }
 }
 
+/// Weekly activity tracker showing which days of the current week had a workout.
 class WeekActivity extends StatelessWidget {
   final List<SessionStat> stats;
 
-  const _WeekActivity(this.stats);
+  const WeekActivity(this.stats);
 
   @override
   Widget build(BuildContext context) {
@@ -160,10 +162,11 @@ class WeekActivity extends StatelessWidget {
   }
 }
 
+/// Single row displaying a muscle group's weekly set count and volume.
 class WeeklyMuscleRow extends StatelessWidget {
   final WeeklyMuscleStats stat;
 
-  const _WeeklyMuscleRow({required this.stat});
+  const WeeklyMuscleRow({required this.stat});
 
   @override
   Widget build(BuildContext context) {
@@ -187,6 +190,7 @@ class WeeklyMuscleRow extends StatelessWidget {
   }
 }
 
+/// Empty-state placeholder shown when no workout data exists.
 class EmptyStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -213,12 +217,13 @@ class EmptyStats extends StatelessWidget {
   }
 }
 
+/// Card displaying a single aggregate stat (title, value, icon).
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
 
-  const _StatCard({required this.title, required this.value, required this.icon});
+  const StatCard({required this.title, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -259,10 +264,11 @@ class StatCard extends StatelessWidget {
   }
 }
 
+/// Grid of aggregate stat cards (total volume, sessions, avg volume, completion).
 class OverallStats extends StatelessWidget {
   final WorkoutStats stats;
 
-  const _OverallStats({required this.stats});
+  const OverallStats({required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -274,22 +280,22 @@ class OverallStats extends StatelessWidget {
       mainAxisSpacing: 12,
       childAspectRatio: 1.5,
       children: [
-        _StatCard(
+        StatCard(
           title: 'Total Volume',
           value: '${(stats.totalVolumeKg / 1000).toStringAsFixed(1)}t',
           icon: Icons.fitness_center,
         ),
-        _StatCard(
+        StatCard(
           title: 'Sessions',
           value: '${stats.totalSessions}',
           icon: Icons.check_circle,
         ),
-        _StatCard(
+        StatCard(
           title: 'Avg Volume',
           value: '${(stats.avgVolumePerSession / 1000).toStringAsFixed(1)}t',
           icon: Icons.show_chart,
         ),
-        _StatCard(
+        StatCard(
           title: 'Completion',
           value: '${(stats.completionRate * 100).toStringAsFixed(0)}%',
           icon: Icons.percent,
@@ -299,14 +305,15 @@ class OverallStats extends StatelessWidget {
   }
 }
 
+/// Card with a button to permanently delete all app data.
 class DangerZoneCard extends StatefulWidget {
-  const _DangerZoneCard();
+  const DangerZoneCard();
 
   @override
-  State<_DangerZoneCard> createState() => _DangerZoneCardState();
+  State<DangerZoneCard> createState() => _DangerZoneCardState();
 }
 
-class DangerZoneCardState extends State<DangerZoneCard> {
+class _DangerZoneCardState extends State<DangerZoneCard> {
   bool _isDeleting = false;
 
   Future<void> _confirmAndClear() async {
@@ -346,7 +353,9 @@ class DangerZoneCardState extends State<DangerZoneCard> {
         if (mounted) {
           statsVm.loadStats();
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Error clearing data: $e');
+      }
       if (mounted) {
         setState(() => _isDeleting = false);
       }
