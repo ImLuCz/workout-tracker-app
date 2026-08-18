@@ -162,26 +162,30 @@ class _StatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 24, color: theme.colorScheme.primary),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 24, color: theme.colorScheme.primary),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -224,48 +228,49 @@ class _WeekActivity extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: days.asMap().entries.map((e) {
               final isToday = e.key == now.weekday - 1;
-              return Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: hasWorkout[e.key]
-                          ? theme.colorScheme.primary
-                          : Colors.transparent,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isToday
+              return Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: hasWorkout[e.key]
                             ? theme.colorScheme.primary
-                            : theme.dividerColor.withValues(alpha: 0.3),
-                        width: 2,
+                            : Colors.transparent,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isToday
+                              ? theme.colorScheme.primary
+                              : theme.dividerColor.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        e.value,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: hasWorkout[e.key]
-                              ? Colors.white
-                              : theme.colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                      child: Center(
+                        child: Text(
+                          e.value,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: hasWorkout[e.key]
+                                ? Colors.white
+                                : theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hasWorkout[e.key] ? 'Done' : '',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: hasWorkout[e.key]
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasWorkout[e.key] ? 'Done' : '',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: hasWorkout[e.key]
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             }).toList(),
           ),
@@ -376,21 +381,25 @@ class _WeeklyMuscleSetsSectionState extends State<_WeeklyMuscleSetsSection> {
           ),
         ),
         const SizedBox(height: 12),
-        DropdownButtonFormField<String>(
-          initialValue: _selectedMuscle,
-          decoration: InputDecoration(
-            hintText: 'Filter by muscle group...',
-            prefixIcon: const Icon(Icons.filter_list),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            isExpanded: true,
+            initialValue: _selectedMuscle,
+            decoration: InputDecoration(
+              labelText: 'Filter by muscle group',
+              prefixIcon: const Icon(Icons.filter_list),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
+            items: _muscleOptions
+                .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                .toList(),
+            onChanged: (value) {
+              if (value != null) setState(() => _selectedMuscle = value);
+            },
           ),
-          items: _muscleOptions
-              .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-              .toList(),
-          onChanged: (value) {
-            if (value != null) setState(() => _selectedMuscle = value);
-          },
         ),
         const SizedBox(height: 12),
         if (!hasData)

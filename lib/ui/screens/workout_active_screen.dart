@@ -411,10 +411,12 @@ class _SetRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           if (set.weightKg > 0 && set.reps > 0)
-            Text(
-              '${(set.weightKg * set.reps).toStringAsFixed(0)}kg total',
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.primary,
+            Flexible(
+              child: Text(
+                '${(set.weightKg * set.reps).toStringAsFixed(0)}kg total',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
               ),
             ),
         ],
