@@ -75,7 +75,7 @@ class ExerciseCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+              icon: Icon(Icons.delete, size: 20, color: theme.colorScheme.error),
               onPressed: onDelete,
               tooltip: 'Delete',
             ),

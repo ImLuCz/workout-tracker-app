@@ -115,7 +115,7 @@ class WorkoutActiveScreen extends StatelessWidget {
               }
             },
             style: ButtonStyle(
-              foregroundColor: WidgetStatePropertyAll(Colors.red.shade700),
+              foregroundColor: WidgetStatePropertyAll(Theme.of(context).colorScheme.error),
             ),
             child: const Text('Discard'),
           ),

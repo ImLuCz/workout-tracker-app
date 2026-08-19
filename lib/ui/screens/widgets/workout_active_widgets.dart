@@ -26,19 +26,19 @@ class RestTimerBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
-            icon: const Icon(Icons.remove, color: Colors.white),
+            icon: Icon(Icons.remove, color: Theme.of(context).colorScheme.onPrimary),
             onPressed: () => viewModel.adjustRestSeconds(-10),
             tooltip: 'Remove 10s',
           ),
           Text(
             'Rest: $timeStr',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.w600,
                 ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
+            icon: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
             onPressed: () => viewModel.adjustRestSeconds(10),
             tooltip: 'Add 10s',
           ),

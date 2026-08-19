@@ -6,12 +6,10 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.light,
     colorSchemeSeed: const Color(0xFF4A5568),
-    fontFamily: 'Inter',
-    scaffoldBackgroundColor: const Color(0xFFF8F9FA),
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: const Color(0xFFE2E8F0), width: 1),
+        side: BorderSide(color: const Color(0xFFE2E8E0), width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
     ),
@@ -50,12 +48,10 @@ class AppTheme {
     useMaterial3: true,
     brightness: Brightness.dark,
     colorSchemeSeed: const Color(0xFF4A5568),
-    fontFamily: 'Inter',
-    scaffoldBackgroundColor: const Color(0xFF1A1A2E),
     cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: const Color(0xFF2D2D44), width: 1),
+        side: BorderSide(color: const Color(0xFF3B3B54), width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
     ),
@@ -75,7 +71,7 @@ class AppTheme {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF667EEA),
+        backgroundColor: const Color(0xFF4A5568),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
@@ -84,7 +80,7 @@ class AppTheme {
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFF667EEA),
+      backgroundColor: Color(0xFF4A5568),
       foregroundColor: Colors.white,
       elevation: 2,
     ),

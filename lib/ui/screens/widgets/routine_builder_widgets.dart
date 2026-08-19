@@ -57,10 +57,10 @@ class ExerciseList extends StatelessWidget {
           direction: DismissDirection.endToStart,
           onDismissed: (_) => viewModel.removeExercise(exercise.id),
           background: Container(
-            color: Colors.red.shade100,
+            color: theme.colorScheme.error.withValues(alpha: 0.1),
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 16),
-            child: const Icon(Icons.delete, color: Colors.red),
+            child: Icon(Icons.delete, color: theme.colorScheme.error),
           ),
           child: ReorderableDragStartListener(
             index: index,

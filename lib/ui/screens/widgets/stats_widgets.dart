@@ -135,7 +135,7 @@ class WeekActivity extends StatelessWidget {
                           e.value,
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: hasWorkout[e.key]
-                                ? Colors.white
+                                ? theme.colorScheme.onPrimary
                                 : theme.colorScheme.onSurface,
                             fontWeight: FontWeight.w600,
                           ),
@@ -401,7 +401,7 @@ class _DangerZoneCardState extends State<DangerZoneCard> {
                 onPressed: _isDeleting ? null : _confirmAndClear,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: errorColor,
-                  foregroundColor: Colors.white,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: _isDeleting
