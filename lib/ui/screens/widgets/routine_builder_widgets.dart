@@ -228,11 +228,11 @@ class RestSecondsInputState extends State<RestSecondsInput> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF1976D2)),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
         suffixText: 's',
         suffixStyle: theme.textTheme.labelSmall?.copyWith(
@@ -315,11 +315,11 @@ class SetsCountInputState extends State<SetsCountInput> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF1976D2)),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
         suffixText: 'sets',
         suffixStyle: theme.textTheme.labelSmall?.copyWith(

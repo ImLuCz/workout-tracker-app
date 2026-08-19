@@ -48,6 +48,7 @@ class _ExerciseManagerScreenState extends State<ExerciseManagerScreen>
   }
 
   Future<void> _deleteExercise(CustomExercise exercise) async {
+    final theme = Theme.of(context);
     final repo = context.read<CustomExerciseRepository>();
     final confirmed = await showDialog<bool>(
       context: context,
@@ -61,7 +62,7 @@ class _ExerciseManagerScreenState extends State<ExerciseManagerScreen>
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -579,7 +580,7 @@ class _ExerciseCard extends StatelessWidget {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+              icon: Icon(Icons.delete, size: 20, color: theme.colorScheme.error),
               onPressed: onDelete,
               tooltip: 'Delete',
             ),

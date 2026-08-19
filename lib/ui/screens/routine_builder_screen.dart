@@ -220,6 +220,7 @@ class _ExerciseList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ReorderableListView.builder(
       buildDefaultDragHandles: false,
       onReorderItem: (oldIndex, newIndex) {
@@ -234,10 +235,13 @@ class _ExerciseList extends StatelessWidget {
           direction: DismissDirection.endToStart,
           onDismissed: (_) => viewModel.removeExercise(exercise.id),
           background: Container(
-            color: Colors.red.shade100,
+            color: theme.colorScheme.errorContainer,
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 16),
-            child: const Icon(Icons.delete, color: Colors.red),
+            child: Icon(
+              Icons.delete,
+              color: theme.colorScheme.onErrorContainer,
+            ),
           ),
           child: ReorderableDragStartListener(
             index: index,
@@ -405,11 +409,11 @@ class _RestSecondsInputState extends State<_RestSecondsInput> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF1976D2)),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
         suffixText: 's',
         suffixStyle: theme.textTheme.labelSmall?.copyWith(
@@ -492,11 +496,11 @@ class _SetsCountInputState extends State<_SetsCountInput> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF1976D2)),
+          borderSide: BorderSide(color: theme.colorScheme.primary),
         ),
         suffixText: 'sets',
         suffixStyle: theme.textTheme.labelSmall?.copyWith(
