@@ -50,7 +50,8 @@ class _QuickActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<WorkoutViewModel>();
+    final hasActiveWorkout =
+        context.select<WorkoutViewModel, bool>((vm) => vm.hasActiveWorkout);
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +72,7 @@ class _QuickActions extends StatelessWidget {
               label: 'Start Workout',
               color: theme.colorScheme.primary,
               onTap: () => context.push('/routine'),
-              enabled: !viewModel.hasActiveWorkout,
+              enabled: !hasActiveWorkout,
             ),
             const SizedBox(width: 12),
             _actionCard(
