@@ -16,9 +16,7 @@ class _StatsScreenState extends State<StatsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<StatsViewModel>().loadStats();
-    });
+    context.read<StatsViewModel>().loadStats();
   }
 
   @override
@@ -31,39 +29,42 @@ class _StatsScreenState extends State<StatsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : viewModel.sessionStats.isEmpty
               ? EmptyStats()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: 11,
-                  itemBuilder: (context, index) {
-                    switch (index) {
-                      case 0:
-                        return OverallStats(stats: viewModel.overallStats ?? _emptyStats());
-                      case 1:
-                        return const SizedBox(height: 24);
-                      case 2:
-                        return WeekActivity(viewModel.sessionStats);
-                      case 3:
-                        return const SizedBox(height: 24);
-                      case 4:
-                        return VolumeChart(stats: viewModel.sessionStats);
-                      case 5:
-                        return const SizedBox(height: 24);
-                      case 6:
-                        return _WeeklyMuscleSetsSection(
-                          weeklyMuscleStats: viewModel.weeklyMuscleStats,
-                        );
-                      case 7:
-                        return const SizedBox(height: 24);
-                      case 8:
-                        return const SizedBox(height: 24);
-                      case 9:
-                        return _SessionList(stats: viewModel.sessionStats);
-                      case 10:
-                        return DangerZoneCard();
-                      default:
-                        return const SizedBox.shrink();
-                    }
-                  },
+              : RefreshIndicator(
+                  onRefresh: () => context.read<StatsViewModel>().loadStats(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 11,
+                    itemBuilder: (context, index) {
+                      switch (index) {
+                        case 0:
+                          return OverallStats(stats: viewModel.overallStats ?? _emptyStats());
+                        case 1:
+                          return const SizedBox(height: 24);
+                        case 2:
+                          return WeekActivity(viewModel.sessionStats);
+                        case 3:
+                          return const SizedBox(height: 24);
+                        case 4:
+                          return VolumeChart(stats: viewModel.sessionStats);
+                        case 5:
+                          return const SizedBox(height: 24);
+                        case 6:
+                          return _WeeklyMuscleSetsSection(
+                            weeklyMuscleStats: viewModel.weeklyMuscleStats,
+                          );
+                        case 7:
+                          return const SizedBox(height: 24);
+                        case 8:
+                          return const SizedBox(height: 24);
+                        case 9:
+                          return _SessionList(stats: viewModel.sessionStats);
+                        case 10:
+                          return DangerZoneCard();
+                        default:
+                          return const SizedBox.shrink();
+                      }
+                    },
+                  ),
                 ),
     );
   }

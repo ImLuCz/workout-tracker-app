@@ -21,14 +21,12 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.routineId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final viewModel = Provider.of<RoutineViewModel>(context, listen: false);
-        final routine = context.read<RoutineViewModel>().getRoutine(widget.routineId!);
-        if (routine != null) {
-          viewModel.startEdit(routine);
-        }
-      });
+    final routineId = widget.routineId;
+    if (routineId == null) return;
+    final viewModel = context.read<RoutineViewModel>();
+    final routine = viewModel.getRoutine(routineId);
+    if (routine != null) {
+      viewModel.startEdit(routine);
     }
   }
 
