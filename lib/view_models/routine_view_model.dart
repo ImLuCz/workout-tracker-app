@@ -34,13 +34,12 @@ class RoutineViewModel extends ChangeNotifier {
 
   Future<List<WorkoutRoutine>> loadRoutines() async {
     _isLoading = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
     try {
       _routines = await _repository.getAllRoutines();
       return _routines;
     } finally {
       _isLoading = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) => notifyListeners());
+      notifyListeners();
     }
   }
 
