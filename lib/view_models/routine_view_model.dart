@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -17,7 +18,7 @@ class RoutineViewModel extends ChangeNotifier {
   final _uuid = const Uuid();
 
   List<RoutineExercise> _exercises = [];
-  List<RoutineExercise> get exercises => _exercises;
+  List<RoutineExercise> get exercises => UnmodifiableListView(_exercises);
 
   List<WorkoutRoutine> _routines = [];
   List<WorkoutRoutine> get routines => _routines;
@@ -59,27 +60,37 @@ class RoutineViewModel extends ChangeNotifier {
 
   void addExercise(Exercise exercise,
       {int restSeconds = defaultRestSeconds, int setsCount = 3}) {
-    _exercises.add(RoutineExercise(
-      id: _uuid.v4(),
-      exercise: exercise,
-      order: _exercises.length,
-      restSeconds: restSeconds,
-      setsCount: setsCount,
-    ));
+    _exercises = [
+      ..._exercises,
+      RoutineExercise(
+        id: _uuid.v4(),
+        exercise: exercise,
+        order: _exercises.length,
+        restSeconds: restSeconds,
+        setsCount: setsCount,
+      ),
+    ];
     notifyListeners();
   }
 
   void removeExercise(String exerciseId) {
-    _exercises.removeWhere((e) => e.id == exerciseId);
-    _reorder();
+    final survivors = _exercises.where((e) => e.id != exerciseId).toList();
+    _exercises = [
+      for (final (i, e) in survivors.indexed) e.copyWith(order: i),
+    ];
     notifyListeners();
   }
 
   void moveExercise(int from, int to) {
     if (from < 0 || to < 0 || from >= _exercises.length || to >= _exercises.length) return;
-    final item = _exercises.removeAt(from);
-    _exercises.insert(to, item);
-    _reorder();
+    final item = _exercises[from];
+    final reordered = List<RoutineExercise>.of(_exercises);
+    reordered
+      ..removeAt(from)
+      ..insert(to, item);
+    _exercises = [
+      for (final (i, e) in reordered.indexed) e.copyWith(order: i),
+    ];
     notifyListeners();
   }
 
@@ -101,12 +112,6 @@ class RoutineViewModel extends ChangeNotifier {
       return e;
     }).toList();
     notifyListeners();
-  }
-
-  void _reorder() {
-    _exercises = _exercises
-        .map((e) => e.copyWith(order: _exercises.indexOf(e)))
-        .toList();
   }
 
   Future<String?> save() async {
