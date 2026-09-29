@@ -27,8 +27,13 @@ class StatsViewModel extends ChangeNotifier {
   }
 
   Future<void> loadStats() async {
+    // No notifyListeners() before the first await: this method is called from
+    // StatsScreen.initState, and an async body runs synchronously up to the first
+    // await, so notifying here would dispatch during the build phase and throw
+    // "setState() or markNeedsBuild() called during build". Mirrors
+    // RoutineViewModel.loadRoutines(). The loading spinner is still shown on the
+    // first frame because build() reads _isLoading before the await resumes.
     _isLoading = true;
-    notifyListeners();
     try {
       final sessions = await _repository.getAllSessions();
       _sessionStats = sessions.map(SessionStat.fromSession).toList();

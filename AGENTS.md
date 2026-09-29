@@ -148,8 +148,9 @@ Branch 3 (Stats)     /stats                       → StatsScreen
 - Tab switching uses `navigationShell.goBranch(i, initialLocation: i == currentIndex)`, **not**
   `context.push` — `push` would pile routes onto the stack and defeat state preservation.
 - The active workout screen is navigated via GoRouter (`/workout?...`) rather than `Navigator.push`.
-- `caseSensitive: true` is set explicitly: `go_router` 15 made URL matching case sensitive, and
-  every path in this app is lowercase.
+- URL matching is case sensitive by default: `caseSensitive` is a `GoRoute` parameter (default
+  `true`) and has **no** top-level `GoRouter` equivalent, so passing it to `GoRouter(...)` is a
+  compile error. Every path in this app is lowercase, so the default is left alone.
 - An `errorBuilder` returns `_RouteNotFoundScreen` for unmatched URLs.
 - When an active session exists the nav bar is replaced by a "Resume Workout" bar
   (`WorkoutViewModel.hasActiveWorkout`).

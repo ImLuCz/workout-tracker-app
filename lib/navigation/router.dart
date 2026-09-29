@@ -20,10 +20,10 @@ import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 /// `/routine/new`, `/exercise`, `/stats`.
 final GoRouter router = GoRouter(
   initialLocation: '/',
-  // go_router 15 made URL matching case sensitive. Every route path and every
-  // navigation call site in this app is lowercase, so nothing changes here; the
-  // default is kept so /Stats does not silently resolve to the stats tab.
-  caseSensitive: true,
+  // go_router matches paths case-sensitively by default and exposes no
+  // caseSensitive option. Every route path and every navigation call site in
+  // this app is lowercase, so /Stats correctly falls through to errorBuilder
+  // instead of resolving to the stats tab.
   errorBuilder: (context, state) => const _RouteNotFoundScreen(),
   routes: [
     StatefulShellRoute.indexedStack(
