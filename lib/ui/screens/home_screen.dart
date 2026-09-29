@@ -111,7 +111,7 @@ class _QuickActions extends StatelessWidget {
             border: Border.all(
               color: enabled
                   ? color.withValues(alpha: 0.3)
-                  : theme.dividerColor.withValues(alpha: 0.2),
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.2),
             ),
           ),
           child: Column(

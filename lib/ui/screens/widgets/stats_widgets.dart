@@ -106,7 +106,7 @@ class WeekActivity extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+            border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -126,7 +126,7 @@ class WeekActivity extends StatelessWidget {
                         border: Border.all(
                           color: isToday
                               ? theme.colorScheme.primary
-                              : theme.dividerColor.withValues(alpha: 0.3),
+                              : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                           width: 2,
                         ),
                       ),
@@ -233,7 +233,7 @@ class StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3)),
       ),
       child: FittedBox(
         fit: BoxFit.scaleDown,
