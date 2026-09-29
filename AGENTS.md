@@ -14,7 +14,7 @@ Navigation is handled by **GoRouter**.
 lib/
   main.dart                  # App entry point, Provider setup, Hive init
   navigation/
-    router.dart              # GoRouter configuration (ShellRoute with bottom nav)
+    router.dart              # GoRouter config (StatefulShellRoute with a NavigationBar)
   ui/
     core/
       theme.dart             # Light/dark ThemeData (Material 3)
@@ -59,7 +59,7 @@ ChangeNotifierProvider(create: (context) => WorkoutViewModel(repository: context
 ChangeNotifierProvider(create: (context) => StatsViewModel(repository: context.read<SessionRepository>())),
 ```
 
-`StatsViewModel.loadStats()` is triggered via `WidgetsBinding.instance.addPostFrameCallback` in its provider `create`.
+`StatsViewModel.loadStats()` is called directly in its provider `create`.
 
 Screens read view models with `context.watch<ViewModel>()` or `context.read<ViewModel>()`.
 
@@ -123,24 +123,36 @@ All models are **immutable** with `const` constructors and `copyWith` methods.
 
 ## Routing
 
-Defined in `lib/navigation/router.dart` using `GoRouter` with a `ShellRoute` that wraps a `BottomNavigationBar` (or a resume workout bar when an active session exists).
+Defined in `lib/navigation/router.dart` using `GoRouter` with a `StatefulShellRoute.indexedStack`
+that wraps a Material 3 `NavigationBar` (or a resume workout bar when an active session exists).
+Each tab is a `StatefulShellBranch` with its own `Navigator`, so switching tabs preserves the state
+of the screens underneath.
+
+Branch order (the index maps to the nav destinations): **0 Home, 1 Routines, 2 Exercises, 3 Stats**.
 
 ```
-/                       → HomeScreen
-  /exercise             → ExerciseManagerScreen
-  /routine              → RoutineListScreen
-  /routine?id=<id>      → RoutineDetailScreen(routineId)
-  /routine/new          → RoutineBuilderScreen(routineId: null)
-  /routine/new?editId=<id> → RoutineBuilderScreen(routineId: editId)
-  /workout?routineId=<id> → WorkoutActiveScreen(routineId)
-  /stats                → StatsScreen
-  /history              → WorkoutHistoryScreen
+Branch 0 (Home)      /                            → HomeScreen
+                       /workout?routineId=<id>     → WorkoutActiveScreen(routineId)
+                       /history                    → WorkoutHistoryScreen
+Branch 1 (Routines)  /routine                     → RoutineListScreen
+                       /routine?id=<id>           → RoutineDetailScreen(routineId)
+                         /routine/new              → RoutineBuilderScreen(routineId: null)
+                         /routine/new?editId=<id>  → RoutineBuilderScreen(routineId: editId)
+Branch 2 (Exercises) /exercise                    → ExerciseManagerScreen
+Branch 3 (Stats)     /stats                       → StatsScreen
 ```
 
+- Expanded route paths must be **globally unique** across all branches. A screen must not be
+  registered twice, or `go_router` throws at runtime.
 - Query parameters are used for passing IDs (e.g. `?routineId=xxx`).
+- Tab switching uses `navigationShell.goBranch(i, initialLocation: i == currentIndex)`, **not**
+  `context.push` — `push` would pile routes onto the stack and defeat state preservation.
 - The active workout screen is navigated via GoRouter (`/workout?...`) rather than `Navigator.push`.
-- `_NavTab` maps locations to the four bottom-nav tabs (Home, Routines, Exercises, Stats); history and workout show under the Home tab.
-- When an active session exists the bottom nav is replaced by a “Resume Workout” bar (`WorkoutViewModel.hasActiveWorkout`).
+- `caseSensitive: true` is set explicitly: `go_router` 15 made URL matching case sensitive, and
+  every path in this app is lowercase.
+- An `errorBuilder` returns `_RouteNotFoundScreen` for unmatched URLs.
+- When an active session exists the nav bar is replaced by a "Resume Workout" bar
+  (`WorkoutViewModel.hasActiveWorkout`).
 
 ---
 
@@ -175,7 +187,11 @@ Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightT
 - Extend `ChangeNotifier`.
 - Private state fields with public getters (no setters).
 - Call `notifyListeners()` after every state mutation.
-- Use `WidgetsBinding.instance.addPostFrameCallback` for one-off async work that needs to notify after the first frame.
+- Do **not** reach for `addPostFrameCallback` to dodge a "notify during build" error. `context.read`
+  is non-subscribing and therefore legal in `initState`; a provider's `create` runs before any
+  listener can be attached, so a synchronous `notifyListeners()` there is a no-op; and a loading
+  flag toggled within one async turn needs no intermediate notification. Every `addPostFrameCallback`
+  in this codebase was removed for these reasons.
 
 ### Async / error handling
 - Use `try/catch/finally` with `notifyListeners()` in `finally`.
@@ -205,15 +221,15 @@ Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightT
 
 ## Key Dependencies
 
-| Package | Purpose |
-|---|---|
-| `provider` | State management & DI |
-| `go_router` | Declarative routing |
-| `hive` / `hive_flutter` | Local persistence |
-| `fl_chart` | Charts (stats screen) |
-| `uuid` | ID generation |
+| Package | Version | Purpose |
+|---|---|---|
+| `provider` | 6.1.5+1 | State management & DI |
+| `go_router` | 17.5.0 | Declarative routing. 18.x requires Flutter >= 3.44, which this project does not yet satisfy |
+| `hive` / `hive_flutter` | 2.2.3 / 1.1.0 | Local persistence (unmaintained; `hive_ce` is the maintained fork) |
+| `uuid` | 4.6.0 | ID generation |
 
-(`intl` and `collection` are no longer dependencies.)
+`fl_chart`, `build_runner`, `hive_generator`, `intl` and `collection` were removed as unused. The
+`VolumeChart` in `stats_widgets.dart` is hand-built from `Container`s, not from a charting library.
 
 ---
 
@@ -236,6 +252,27 @@ Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightT
 3. Use `context.watch<ViewModel>()` or `context.read<ViewModel>()` in screens.
 
 ### Migrating existing code to modern Dart
-- Use `dart-use-pattern-matching` skill for `switch` expressions.
-- Use `dart-use-primary-constructors` skill for constructor simplification.
-- Use `dart-migrate-to-checks-package` skill for assertion modernisation.
+- See the `dart-modern` skill for `switch` expressions, sealed classes, records, and
+  constructor simplification. Note: primary constructors need language version 3.13 and
+  the `pubspec.yaml` SDK constraint (`^3.12.2`) does not enable them yet.
+- See the `flutter-testing` skill for the `package:checks` assertion migration.
+
+---
+
+## Project Skills
+
+Skills live in `.opencode/skills/` and are loaded on demand. Load the one matching the
+area you are changing:
+
+| Skill | Covers |
+|---|---|
+| `project-architecture` | Layer boundaries, model/view-model rules, adding screens/models/view models |
+| `flutter-ui` | Widgets, lifecycle, Material 3, lists, forms, sheets, performance |
+| `dart-modern` | Records, patterns, sealed classes, `switch` expressions, immutability, tooling |
+| `provider-state` | `MultiProvider` wiring, `watch`/`read`/`select`, `ChangeNotifier` lifecycle |
+| `go-router-navigation` | Route table, query params, shell/nav, go vs push, 17 → 18 upgrade |
+| `hive-persistence` | Boxes, repository layer, JSON serialisation, schema changes, `hive_ce` migration |
+| `fl-chart-graphs` | Chart API for the stats screen. `fl_chart` is no longer a dependency; the chart is hand-built |
+| `build-runner-codegen` | **Obsolete** — `build_runner`/`hive_generator` were removed; there are no annotations in `lib/` |
+| `uuid-identity` | `Uuid.v4()` usage and id stability rules |
+| `flutter-testing` | Unit/widget tests, stub repositories, `package:checks` migration |
