@@ -59,6 +59,8 @@ ChangeNotifierProvider(create: (context) => WorkoutViewModel(repository: context
 ChangeNotifierProvider(create: (context) => StatsViewModel(repository: context.read<SessionRepository>())),
 ```
 
+`StatsViewModel.loadStats()` is triggered via `WidgetsBinding.instance.addPostFrameCallback` in its provider `create`.
+
 Screens read view models with `context.watch<ViewModel>()` or `context.read<ViewModel>()`.
 
 ---
@@ -85,6 +87,9 @@ Each entity has a dedicated repository (`RoutineRepository`, `SessionRepository`
 - `get*()` → `T?`
 - `save*()` → `Future<void>`
 - `delete*()` → `Future<void>`
+- `clearAll()` → `Future<void>`
+
+`SessionRepository` also provides `getLastCompletedSessionForRoutine()` (used to carry forward last weights/reps).
 
 ---
 
@@ -95,15 +100,15 @@ All models are **immutable** with `const` constructors and `copyWith` methods.
 | Model | Key fields |
 |---|---|
 | `Exercise` | `id`, `name`, `category`, `description?`, `equipment?`, `target?`, `secondaryMuscles?`, `instructions?` |
-| `RoutineExercise` | `id`, `exercise`, `order`, `restSeconds`, `setsCount` |
+| `RoutineExercise` | `id`, `exercise`, `order`, `restSeconds`, `setsCount`; `copyWith` takes `exerciseId` (rebuilds a minimal `Exercise`) |
 | `WorkoutRoutine` | `id`, `name`, `exercises`, `createdAt`, `updatedAt?` |
 | `WorkoutSet` | `id`, `weightKg`, `reps`, `completed`, `completedAt?`, `isLogged` (getter) |
 | `SessionExercise` | `routineExercise`, `sets`, `restSeconds`, `primaryMuscles`, `secondaryMuscles`, `totalWeight` (getter) |
 | `WorkoutSession` | `id`, `routineId`, `routineName`, `startTime`, `endTime?`, `exercises`, `isFinished`/`totalVolume`/`totalSets`/`completedSets` (getters) |
 | `CustomExercise` | `id`, `name`, `description?`, `primaryMuscles`, `secondaryMuscles`, `equipment`, `referencePicturePath?`, `createdAt`, `updatedAt` |
-| `CustomExerciseStats` | `totalWorkouts`, `totalVolumeKg`, `personalBestKg` |
+| `CustomExerciseStats` | `totalWorkouts`, `totalVolumeKg`, `personalBestKg`; `getStats()` returns empty until extended from sessions |
 | `WorkoutStats` | `totalVolumeKg`, `totalSessions`, `totalSets`, `totalCompletedSets`, `sessionStats`, `avgVolumePerSession`/`completionRate` (getters) |
-| `SessionStat` | `date`, `routineName`, `volumeKg`, `completedSets`, `totalSets`, `duration` |
+| `SessionStat` | `date`, `routineName`, `volumeKg`, `completedSets`, `totalSets`, `duration`, `fromSession` (factory) |
 | `WeeklyMuscleStats` | `muscleName`, `totalSetsThisWeek`, `totalVolumeKgThisWeek` |
 
 ### Model conventions
@@ -134,6 +139,8 @@ Defined in `lib/navigation/router.dart` using `GoRouter` with a `ShellRoute` tha
 
 - Query parameters are used for passing IDs (e.g. `?routineId=xxx`).
 - The active workout screen is navigated via GoRouter (`/workout?...`) rather than `Navigator.push`.
+- `_NavTab` maps locations to the four bottom-nav tabs (Home, Routines, Exercises, Stats); history and workout show under the Home tab.
+- When an active session exists the bottom nav is replaced by a “Resume Workout” bar (`WorkoutViewModel.hasActiveWorkout`).
 
 ---
 
@@ -141,11 +148,11 @@ Defined in `lib/navigation/router.dart` using `GoRouter` with a `ShellRoute` tha
 
 Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightTheme` / `darkTheme`) using Material 3 (`useMaterial3: true`).
 
-- Seed color: `#4A5568` (slate grey) for light, `#667EEA` (periwinkle) for dark accent buttons.
-- Scaffold background: `#F8F9FA` (light) / `#1A1A2E` (dark).
+- Seed color: `#4A5568` (slate grey) for both light and dark (`colorSchemeSeed`).
 - Cards: flat (elevation 0), 12px rounded corners, subtle border.
-- Font: `'Inter'`.
 - `themeMode: ThemeMode.system` — follows OS setting.
+
+(Dark accent is the same slate grey, not perwinkle; no custom Inter font family is applied.)
 
 ---
 
@@ -204,9 +211,9 @@ Theme is defined in `lib/ui/core/theme.dart` as two `ThemeData` objects (`lightT
 | `go_router` | Declarative routing |
 | `hive` / `hive_flutter` | Local persistence |
 | `fl_chart` | Charts (stats screen) |
-| `intl` | Date/time formatting |
 | `uuid` | ID generation |
-| `collection` | Collection utilities |
+
+(`intl` and `collection` are no longer dependencies.)
 
 ---
 
