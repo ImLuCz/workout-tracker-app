@@ -25,12 +25,22 @@ class RoutineExercise {
   }) {
     return RoutineExercise(
       id: id,
-      exercise: Exercise(
-        id: exerciseId ?? exercise.id,
-        name: exercise.name,
-        category: exercise.category,
-        description: exercise.description,
-      ),
+      // Keep the whole Exercise unless the id is being replaced. Rebuilding it
+      // from name/category/description alone silently dropped equipment, target,
+      // secondaryMuscles and instructions, and every reordering or rest/sets
+      // edit routes through here.
+      exercise: exerciseId == null
+          ? exercise
+          : Exercise(
+              id: exerciseId,
+              name: exercise.name,
+              category: exercise.category,
+              description: exercise.description,
+              equipment: exercise.equipment,
+              target: exercise.target,
+              secondaryMuscles: exercise.secondaryMuscles,
+              instructions: exercise.instructions,
+            ),
       order: order ?? this.order,
       restSeconds: restSeconds ?? this.restSeconds,
       setsCount: setsCount ?? this.setsCount,
