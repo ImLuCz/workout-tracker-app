@@ -113,12 +113,13 @@ void main() {
 
       await viewModel.loadStats();
 
-      final weeklyChest = viewModel.weeklyMuscleStats
-          .where((s) => s.muscleName == 'Chest')
-          .firstOrNull;
-      final weeklyTriceps = viewModel.weeklyMuscleStats
-          .where((s) => s.muscleName == 'Triceps')
-          .firstOrNull;
+      final chestMatches =
+          viewModel.weeklyMuscleStats.where((s) => s.muscleName == 'Chest');
+      final weeklyChest = chestMatches.isEmpty ? null : chestMatches.first;
+      final tricepsMatches =
+          viewModel.weeklyMuscleStats.where((s) => s.muscleName == 'Triceps');
+      final weeklyTriceps =
+          tricepsMatches.isEmpty ? null : tricepsMatches.first;
 
       expect(weeklyChest, isNotNull);
       expect(weeklyChest!.totalSetsThisWeek, 3.0);
@@ -164,9 +165,9 @@ void main() {
 
       await viewModel.loadStats();
 
-      final weeklyChest = viewModel.weeklyMuscleStats
-          .where((m) => m.muscleName == 'Chest')
-          .firstOrNull;
+      final chestMatches =
+          viewModel.weeklyMuscleStats.where((m) => m.muscleName == 'Chest');
+      final weeklyChest = chestMatches.isEmpty ? null : chestMatches.first;
 
       expect(weeklyChest, isNotNull);
       expect(weeklyChest!.totalSetsThisWeek, 1);
