@@ -4,40 +4,17 @@ import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/domain/models/workout_session.dart';
 import 'package:workout_tracker_app/domain/models/workout_set.dart';
 import 'package:workout_tracker_app/view_models/stats_view_model.dart';
-import 'package:workout_tracker_app/data/repositories/session_repository.dart';
 
-// Stub repository that extends the real one and overrides methods
-class _StubSessionRepository extends SessionRepository {
-  final List<WorkoutSession> _sessions = [];
-
-  @override
-  Future<List<WorkoutSession>> getAllSessions() async => _sessions;
-
-  @override
-  Future<void> saveSession(WorkoutSession session) async {
-    _sessions.add(session);
-  }
-
-  @override
-  Future<void> deleteSession(String id) async {
-    _sessions.removeWhere((s) => s.id == id);
-  }
-
-  void addSession(WorkoutSession session) {
-    _sessions.add(session);
-  }
-
-  List<WorkoutSession> get sessions => _sessions;
-}
+import '../helpers/stub_repositories.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late _StubSessionRepository repository;
+  late StubSessionRepository repository;
   late StatsViewModel viewModel;
 
   setUp(() {
-    repository = _StubSessionRepository();
+    repository = StubSessionRepository();
     viewModel = StatsViewModel(repository: repository);
   });
 

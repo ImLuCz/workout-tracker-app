@@ -2,52 +2,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/workout_routine.dart';
 import 'package:workout_tracker_app/view_models/routine_view_model.dart';
-import 'package:workout_tracker_app/data/repositories/routine_repository.dart';
 
-// Stub repository that extends the real one and overrides methods
-class _StubRoutineRepository extends RoutineRepository {
-  final List<WorkoutRoutine> _routines = [];
-  WorkoutRoutine? _savedRoutine;
-  String? _deletedId;
-
-  @override
-  Future<List<WorkoutRoutine>> getAllRoutines() async => _routines;
-
-  @override
-  WorkoutRoutine? getRoutine(String id) =>
-      _routines.where((r) => r.id == id).firstOrNull;
-
-  @override
-  Future<void> saveRoutine(WorkoutRoutine routine) async {
-    _savedRoutine = routine;
-    final existing =
-        _routines.indexWhere((r) => r.id == routine.id);
-    if (existing >= 0) {
-      _routines[existing] = routine;
-    } else {
-      _routines.add(routine);
-    }
-  }
-
-  @override
-  Future<void> deleteRoutine(String id) async {
-    _deletedId = id;
-    _routines.removeWhere((r) => r.id == id);
-  }
-
-  WorkoutRoutine? get savedRoutine => _savedRoutine;
-  String? get deletedId => _deletedId;
-  List<WorkoutRoutine> get routines => _routines;
-}
+import '../helpers/stub_repositories.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late _StubRoutineRepository repository;
+  late StubRoutineRepository repository;
   late RoutineViewModel viewModel;
 
   setUp(() {
-    repository = _StubRoutineRepository();
+    repository = StubRoutineRepository();
     viewModel = RoutineViewModel(repository: repository);
   });
 
