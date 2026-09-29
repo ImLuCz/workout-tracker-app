@@ -43,17 +43,21 @@ class WorkoutViewModel extends ChangeNotifier {
   bool get restTimerRunning => _restTimerRunning;
   Timer? _timer;
 
-  String _restTarget = '90'; // seconds
-  String get restTarget => _restTarget;
+  int _restTarget = defaultRestSeconds; // seconds
 
-  void setRestTarget(String value) {
+  /// Target rest duration in seconds. Defaults to [defaultRestSeconds].
+  int get restTarget => _restTarget;
+
+  /// Sets the rest target used by [startSetRest] when no exercise-specific
+  /// value is supplied.
+  void setRestTarget(int value) {
     _restTarget = value;
     notifyListeners();
   }
 
   void startSetRest({int customSeconds = 0}) {
     if (_restTimerRunning) return;
-    _restSeconds = customSeconds > 0 ? customSeconds : (int.tryParse(_restTarget) ?? defaultRestSeconds);
+    _restSeconds = customSeconds > 0 ? customSeconds : _restTarget;
     _restTimerRunning = true;
     notifyListeners();
     _timer?.cancel();

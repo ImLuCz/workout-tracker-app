@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:workout_tracker_app/constants/rest.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
 import 'package:workout_tracker_app/domain/models/workout_routine.dart';
 import 'package:workout_tracker_app/domain/models/exercise.dart';
@@ -56,7 +57,8 @@ class RoutineViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addExercise(Exercise exercise, {int restSeconds = 90, int setsCount = 3}) {
+  void addExercise(Exercise exercise,
+      {int restSeconds = defaultRestSeconds, int setsCount = 3}) {
     _exercises.add(RoutineExercise(
       id: _uuid.v4(),
       exercise: exercise,

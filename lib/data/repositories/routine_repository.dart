@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:workout_tracker_app/constants/rest.dart';
 import 'package:workout_tracker_app/data/services/hive_service.dart';
 import 'package:workout_tracker_app/domain/models/exercise.dart';
 import 'package:workout_tracker_app/domain/models/routine_exercise.dart';
@@ -84,7 +85,7 @@ class RoutineRepository {
       id: data['exerciseId'] as String,
       exercise: _exerciseFromJson(data['exercise'] as Map<String, dynamic>),
       order: data['order'] as int? ?? 0,
-      restSeconds: data['restSeconds'] as int? ?? 90,
+      restSeconds: data['restSeconds'] as int? ?? defaultRestSeconds,
     );
   }
 

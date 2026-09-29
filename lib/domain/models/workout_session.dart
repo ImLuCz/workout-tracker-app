@@ -1,3 +1,4 @@
+import '../../constants/rest.dart';
 import 'routine_exercise.dart';
 import 'workout_set.dart';
 
@@ -56,7 +57,7 @@ class SessionExercise {
   const SessionExercise({
     required this.routineExercise,
     required this.sets,
-    this.restSeconds = 90,
+    this.restSeconds = defaultRestSeconds,
     this.primaryMuscles = const [],
     this.secondaryMuscles = const [],
   });
