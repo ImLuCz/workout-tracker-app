@@ -1,12 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-/// Hive box keys for data persistence.
-class HiveBoxKeys {
-  static const String exercises = 'exercises';
-  static const String routines = 'routines';
-  static const String sessions = 'sessions';
-}
-
 /// Manages Hive box initialization.
 class HiveService {
   static late Box<dynamic> _routinesBox;
