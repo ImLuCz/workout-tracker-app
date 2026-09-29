@@ -20,6 +20,11 @@ import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 /// `/routine/new`, `/exercise`, `/stats`.
 final GoRouter router = GoRouter(
   initialLocation: '/',
+  // go_router 15 made URL matching case sensitive. Every route path and every
+  // navigation call site in this app is lowercase, so nothing changes here; the
+  // default is kept so /Stats does not silently resolve to the stats tab.
+  caseSensitive: true,
+  errorBuilder: (context, state) => const _RouteNotFoundScreen(),
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
@@ -138,6 +143,42 @@ class _NavScaffold extends StatelessWidget {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _RouteNotFoundScreen extends StatelessWidget {
+  const _RouteNotFoundScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Page not found')),
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.explore_off_outlined,
+              size: 64,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'This page does not exist',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () => context.go('/'),
+              child: const Text('Go home'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
