@@ -11,45 +11,47 @@ import 'package:workout_tracker_app/ui/screens/workout_active_screen.dart';
 import 'package:workout_tracker_app/ui/screens/workout_history_screen.dart';
 import 'package:workout_tracker_app/view_models/workout_view_model.dart';
 
-enum _NavTab {
-  home,
-  routines,
-  exercises,
-  stats;
-
-  static const _values = <_NavTab>[home, routines, exercises, stats];
-
-  static int _index(_NavTab tab) => _values.indexWhere((e) => e == tab);
-
-  static _NavTab? fromLocation(String location) {
-    if (location == '/' || location.startsWith('/workout') || location.startsWith('/history')) {
-      return _NavTab.home;
-    }
-    if (location.startsWith('/routine')) return _NavTab.routines;
-    if (location.startsWith('/exercise')) return _NavTab.exercises;
-    if (location.startsWith('/stats')) return _NavTab.stats;
-    return null;
-  }
-}
-
+/// Routes are grouped into four branches, one per bottom-nav destination.
+/// Each branch keeps its own [Navigator], so switching tabs preserves the
+/// state of the screens underneath (scroll offsets, half-typed text, the
+/// selected muscle filter) instead of rebuilding them.
+///
+/// Expanded paths, all unique: `/`, `/workout`, `/history`, `/routine`,
+/// `/routine/new`, `/exercise`, `/stats`.
 final GoRouter router = GoRouter(
   initialLocation: '/',
   routes: [
-    ShellRoute(
-      builder: (context, state, child) {
-        return _NavScaffold(child: child);
-      },
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const HomeScreen(),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) =>
+          _NavScaffold(navigationShell: navigationShell),
+      branches: [
+        // 0 — Home
+        StatefulShellBranch(
           routes: [
             GoRoute(
-              path: 'exercise',
-              builder: (context, state) => const ExerciseManagerScreen(),
+              path: '/',
+              builder: (context, state) => const HomeScreen(),
+              routes: [
+                GoRoute(
+                  path: 'workout',
+                  builder: (context, state) {
+                    final routineId = state.uri.queryParameters['routineId'] ?? '';
+                    return WorkoutActiveScreen(routineId: routineId);
+                  },
+                ),
+                GoRoute(
+                  path: 'history',
+                  builder: (context, state) => const WorkoutHistoryScreen(),
+                ),
+              ],
             ),
+          ],
+        ),
+        // 1 — Routines
+        StatefulShellBranch(
+          routes: [
             GoRoute(
-              path: 'routine',
+              path: '/routine',
               builder: (context, state) {
                 final id = state.uri.queryParameters['id'];
                 return id == null
@@ -66,20 +68,23 @@ final GoRouter router = GoRouter(
                 ),
               ],
             ),
+          ],
+        ),
+        // 2 — Exercises
+        StatefulShellBranch(
+          routes: [
             GoRoute(
-              path: 'workout',
-              builder: (context, state) {
-                final routineId = state.uri.queryParameters['routineId'] ?? '';
-                return WorkoutActiveScreen(routineId: routineId);
-              },
+              path: '/exercise',
+              builder: (context, state) => const ExerciseManagerScreen(),
             ),
+          ],
+        ),
+        // 3 — Stats
+        StatefulShellBranch(
+          routes: [
             GoRoute(
-              path: 'stats',
+              path: '/stats',
               builder: (context, state) => const StatsScreen(),
-            ),
-            GoRoute(
-              path: 'history',
-              builder: (context, state) => const WorkoutHistoryScreen(),
             ),
           ],
         ),
@@ -88,69 +93,47 @@ final GoRouter router = GoRouter(
   ],
 );
 
-class _NavScaffold extends StatefulWidget {
-  final Widget child;
-  const _NavScaffold({required this.child});
+class _NavScaffold extends StatelessWidget {
+  final StatefulNavigationShell navigationShell;
 
-  @override
-  State<_NavScaffold> createState() => _NavScaffoldState();
-}
-
-class _NavScaffoldState extends State<_NavScaffold> {
-  int _currentIndex = 0;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _updateIndex();
-  }
-
-  void _updateIndex() {
-    final location = GoRouterState.of(context).uri.path;
-    final tab = _NavTab.fromLocation(location);
-    final index = tab != null ? _NavTab._index(tab) : 0;
-    if (index != _currentIndex) {
-      setState(() => _currentIndex = index);
-    }
-  }
-
-  void _onTabTapped(int index) {
-    final routes = <String>['/', '/routine', '/exercise', '/stats'];
-    context.push(routes[index]);
-  }
+  const _NavScaffold({required this.navigationShell});
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = context.watch<WorkoutViewModel>();
-    final hasActiveWorkout = viewModel.hasActiveWorkout;
+    // Select rather than watch: WorkoutViewModel notifies once a second while
+    // the rest timer runs, and the shell only needs this one boolean.
+    final hasActiveWorkout =
+        context.select<WorkoutViewModel, bool>((vm) => vm.hasActiveWorkout);
 
     return Scaffold(
-      body: widget.child,
+      body: navigationShell,
       bottomNavigationBar: hasActiveWorkout
-          ? _ResumeWorkoutBar(viewModel: viewModel)
-          : BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: _onTabTapped,
-              type: BottomNavigationBarType.fixed,
-              items: const <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
+          ? const _ResumeWorkoutBar()
+          : NavigationBar(
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (index) => navigationShell.goBranch(
+                index,
+                initialLocation: index == navigationShell.currentIndex,
+              ),
+              destinations: const <NavigationDestination>[
+                NavigationDestination(
                   icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home),
+                  selectedIcon: Icon(Icons.home),
                   label: 'Home',
                 ),
-                BottomNavigationBarItem(
+                NavigationDestination(
                   icon: Icon(Icons.book_outlined),
-                  activeIcon: Icon(Icons.book),
+                  selectedIcon: Icon(Icons.book),
                   label: 'Routines',
                 ),
-                BottomNavigationBarItem(
+                NavigationDestination(
                   icon: Icon(Icons.directions_run_outlined),
-                  activeIcon: Icon(Icons.directions_run),
+                  selectedIcon: Icon(Icons.directions_run),
                   label: 'Exercises',
                 ),
-                BottomNavigationBarItem(
+                NavigationDestination(
                   icon: Icon(Icons.bar_chart_outlined),
-                  activeIcon: Icon(Icons.bar_chart),
+                  selectedIcon: Icon(Icons.bar_chart),
                   label: 'Stats',
                 ),
               ],
@@ -160,12 +143,17 @@ class _NavScaffoldState extends State<_NavScaffold> {
 }
 
 class _ResumeWorkoutBar extends StatelessWidget {
-  final WorkoutViewModel viewModel;
-  const _ResumeWorkoutBar({required this.viewModel});
+  const _ResumeWorkoutBar();
 
   @override
   Widget build(BuildContext context) {
-    final routineId = viewModel.session!.routineId;
+    // Narrow select on the id only — the shell already decided there is an
+    // active session, so this only re-renders when the session changes.
+    final routineId = context.select<WorkoutViewModel, String?>(
+      (vm) => vm.session?.routineId,
+    );
+    if (routineId == null) return const SizedBox.shrink();
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       color: Theme.of(context).colorScheme.surface,
