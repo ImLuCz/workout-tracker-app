@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:workout_tracker_app/constants/rest.dart';
 import 'package:workout_tracker_app/data/repositories/custom_exercise_repository.dart';
 
 import 'package:workout_tracker_app/domain/models/exercise.dart';
@@ -389,7 +390,7 @@ class _RestSecondsInputState extends State<_RestSecondsInput> {
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       onEditingComplete: () {
         final parsed = int.tryParse(_controller.text);
-        widget.onChanged((parsed ?? 0).clamp(0, 1800));
+        widget.onChanged((parsed ?? 0).clamp(0, maxRestSeconds));
         FocusScope.of(context).unfocus();
       },
       onChanged: (value) {},
@@ -419,7 +420,7 @@ class _RestSecondsInputState extends State<_RestSecondsInput> {
       ),
       onTapOutside: (event) {
         final parsed = int.tryParse(_controller.text);
-        widget.onChanged((parsed ?? 0).clamp(0, 1800));
+        widget.onChanged((parsed ?? 0).clamp(0, maxRestSeconds));
         setState(() => _editing = false);
       },
     );
