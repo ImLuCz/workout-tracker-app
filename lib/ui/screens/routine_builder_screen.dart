@@ -37,10 +37,6 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
     }
   }
 
-  void _showAddExerciseSheet(BuildContext context) {
-    _showCustomExercisesPicker(context);
-  }
-
   void _showCustomExercisesPicker(BuildContext context) async {
     final exercises = await context
         .read<CustomExerciseRepository>()
@@ -170,7 +166,7 @@ class _RoutineBuilderScreenState extends State<RoutineBuilderScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddExerciseSheet(context),
+        onPressed: () => _showCustomExercisesPicker(context),
         icon: const Icon(Icons.add),
         label: const Text('Add Exercise'),
       ),
